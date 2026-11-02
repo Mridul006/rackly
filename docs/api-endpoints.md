@@ -78,7 +78,7 @@ Each GPU in the response has a status of `available`, `rented` or `offline`. Lat
 | Method | Path | Who | Priority | Story it serves |
 |---|---|---|---|---|
 | GET | /wallet | logged in | v1 | see my balance |
-| POST | /wallet/deposits | logged in | v1 | add money (simulated, no real payment) |
+| POST | /wallet/deposits | renter | v1 | add money (simulated, no real payment) |
 | GET | /wallet/transactions | logged in | v1 | history of bookings and payments |
 
 The balance is the sum of the user's `wallet_transactions` rows. Nothing ever edits the balance directly.
