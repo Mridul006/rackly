@@ -1,12 +1,14 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
 from .database import get_db
-from .routers import auth
+from .routers import auth, users
+
+
 
 app = FastAPI()
 app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.get("/")
 async def root():
