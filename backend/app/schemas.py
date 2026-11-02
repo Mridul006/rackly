@@ -17,3 +17,7 @@ class UserOut(BaseModel):
     email: EmailStr
     role: str
     created_at: datetime
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
