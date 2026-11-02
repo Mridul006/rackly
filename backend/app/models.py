@@ -61,6 +61,11 @@ class WalletTransaction(Base):
             "type IN ('deposit', 'booking_charge', 'refund', 'provider_payout')",
             name="ck_wallet_transactions_type",
         ),
+        CheckConstraint(
+            "(type IN ('deposit', 'refund', 'provider_payout') AND amount > 0) "
+            "OR (type = 'booking_charge' AND amount < 0)",
+            name="ck_wallet_transactions_amount_sign",
+        ),
     )
 
     id = Column(Integer, primary_key=True, nullable=False)

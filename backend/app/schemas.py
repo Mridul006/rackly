@@ -116,3 +116,21 @@ class BookingOut(BaseModel):
     status: str
     created_at: datetime
     cancelled_at: datetime | None
+    
+
+class DepositCreate(BaseModel):
+    amount: Decimal = Field(gt=0, le=10000, max_digits=12, decimal_places=2)
+
+
+class WalletOut(BaseModel):
+    balance: Decimal
+
+
+class TransactionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    booking_id: int | None
+    type: str
+    amount: Decimal
+    created_at: datetime
