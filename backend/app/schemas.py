@@ -1,7 +1,7 @@
 # keeps the schemas of the user input and response given by the app
 
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, AwareDatetime, model_validator
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 from decimal import Decimal
 
@@ -86,3 +86,33 @@ class AvailabilityOut(BaseModel):
     start_at: datetime
     end_at: datetime
     
+    
+    
+class BookingCreate(BaseModel):
+    gpu_id: int
+    start_at: AwareDatetime
+    end_at: AwareDatetime
+
+    @model_validator(mode="after")
+    def check_duration(self):
+        duration = self.end_at - self.start_at
+        if duration < timedelta(hours=1):
+            raise ValueError("Booking must be at least 1 hour")
+        if duration % timedelta(hours=1) != timedelta(0):
+            raise ValueError("Booking length must be a whole number of hours")
+        return self
+
+
+class BookingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    gpu_id: int
+    renter_id: int
+    start_at: datetime
+    end_at: datetime
+    price_per_hour: Decimal
+    total_price: Decimal
+    status: str
+    created_at: datetime
+    cancelled_at: datetime | None
