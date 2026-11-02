@@ -9,7 +9,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import GPU, AvailabilityWindow, Booking, User
+from ..models import GPU, AvailabilityWindow, Booking, User, WalletTransaction
+from ..wallet import get_balance
 from ..pricing import calculate_total
 from ..schemas import BookingCreate, BookingOut
 from ..security import get_current_user, require_renter
@@ -48,6 +49,7 @@ def create_booking(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Requested time is outside this GPU's availability",
         )
+
     conflict_id = db.scalar(
         select(Booking.id)
         .where(
@@ -63,23 +65,44 @@ def create_booking(
             status_code=status.HTTP_409_CONFLICT,
             detail="GPU is already booked for part of that time",
         )
+
+    total = calculate_total(gpu.price_per_hour, booking_in.start_at, booking_in.end_at)
+
+    db.execute(select(User.id).where(User.id == current_user.id).with_for_update())
+
+    if get_balance(db, current_user.id) < total:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Insufficient wallet balance",
+        )
+
     booking = Booking(
         gpu_id=gpu.id,
         renter_id=current_user.id,
         start_at=booking_in.start_at,
         end_at=booking_in.end_at,
         price_per_hour=gpu.price_per_hour,
-        total_price=calculate_total(gpu.price_per_hour, booking_in.start_at, booking_in.end_at),
+        total_price=total,
     )
-    db.add(booking)
     try:
-        db.commit()
+        db.add(booking)
+        db.flush()  
     except IntegrityError:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="GPU is already booked for part of that time",
         )
+
+    db.add(
+        WalletTransaction(
+            user_id=current_user.id,
+            booking_id=booking.id,
+            type="booking_charge",
+            amount=-total,
+        )
+    )
+    db.commit()
     db.refresh(booking)
     return booking
 
