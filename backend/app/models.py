@@ -31,6 +31,8 @@ class GPU(Base):
     
 class AvailabilityWindow(Base):
     __tablename__ = "availability_windows"
+    __table_args__ = (
+        CheckConstraint("end_at > start_at", name="ck_availability_windows_end_after_start"),)
 
     id = Column(Integer, primary_key=True, nullable=False)
     gpu_id = Column(Integer, ForeignKey("gpus.id", ondelete="CASCADE"), nullable=False, index=True)

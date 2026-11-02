@@ -1,25 +1,32 @@
 # this file contains the routers for the gpus endpoints
 
+from datetime import datetime, timezone
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import GPU, User
-from ..schemas import GPUCreate, GPUOut, GPUUpdate
+from ..models import GPU, AvailabilityWindow, User
+from ..schemas import AvailabilityCreate, AvailabilityOut, GPUCreate, GPUOut, GPUUpdate
 from ..security import require_provider
 
 
 router = APIRouter(prefix="/gpus", tags=["gpus"])
 
+
+def get_owned_gpu(gpu_id: int, db: Session, current_user: User) -> GPU:
+    gpu = db.get(GPU, gpu_id)
+    if gpu is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GPU not found")
+    if gpu.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your GPU")
+    return gpu
+
+
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=GPUOut)
-def create_gpu(
-    gpu_in: GPUCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_provider),
-):
+def create_gpu(gpu_in: GPUCreate,db: Session = Depends(get_db),current_user: User = Depends(require_provider),):
     gpu = GPU(**gpu_in.model_dump(), owner_id=current_user.id)
     db.add(gpu)
     db.commit()
@@ -64,12 +71,7 @@ def get_gpu(gpu_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{gpu_id}", response_model=GPUOut)
-def update_gpu(
-    gpu_id: int,
-    gpu_in: GPUUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_provider),
-):
+def update_gpu(gpu_id: int,gpu_in: GPUUpdate,db: Session = Depends(get_db),current_user: User = Depends(require_provider),):
     gpu = db.get(GPU, gpu_id)
     if gpu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GPU not found")
@@ -85,3 +87,79 @@ def update_gpu(
     db.commit()
     db.refresh(gpu)
     return gpu
+
+
+@router.post("/{gpu_id}/availability",status_code=status.HTTP_201_CREATED,response_model=AvailabilityOut,)
+def create_availability(
+    gpu_id: int,
+    window_in: AvailabilityCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_provider),
+):
+    gpu = get_owned_gpu(gpu_id, db, current_user)
+
+    if window_in.end_at <= datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Availability window must end in the future",
+        )
+
+    overlap = db.scalar(
+        select(AvailabilityWindow.id)
+        .where(
+            AvailabilityWindow.gpu_id == gpu.id,
+            AvailabilityWindow.start_at < window_in.end_at,
+            AvailabilityWindow.end_at > window_in.start_at,
+        )
+        .limit(1)
+    )
+    if overlap is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Overlaps an existing availability window",
+        )
+
+    window = AvailabilityWindow(
+        gpu_id=gpu.id,
+        start_at=window_in.start_at,
+        end_at=window_in.end_at,
+    )
+    db.add(window)
+    db.commit()
+    db.refresh(window)
+    return window
+
+
+@router.get("/{gpu_id}/availability", response_model=list[AvailabilityOut])
+def list_availability(gpu_id: int, db: Session = Depends(get_db)):
+    gpu = db.get(GPU, gpu_id)
+    if gpu is None or not gpu.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GPU not found")
+
+    query = (
+        select(AvailabilityWindow)
+        .where(
+            AvailabilityWindow.gpu_id == gpu_id,
+            AvailabilityWindow.end_at > datetime.now(timezone.utc),
+        )
+        .order_by(AvailabilityWindow.start_at)
+    )
+    return db.scalars(query).all()
+
+
+@router.delete("/{gpu_id}/availability/{window_id}",status_code=status.HTTP_204_NO_CONTENT,)
+def delete_availability(
+    gpu_id: int,
+    window_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_provider),
+):
+    gpu = get_owned_gpu(gpu_id, db, current_user)
+
+    window = db.get(AvailabilityWindow, window_id)
+    if window is None or window.gpu_id != gpu.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Window not found")
+
+    db.delete(window)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

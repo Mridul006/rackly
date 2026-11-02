@@ -1,8 +1,8 @@
 # keeps the schemas of the user input and response given by the app
 
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, AwareDatetime, model_validator
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 from decimal import Decimal
 
 
@@ -65,3 +65,24 @@ class GPUOut(BaseModel):
     slot_no: int | None
     is_active: bool
     created_at: datetime
+    
+    
+    
+class AvailabilityCreate(BaseModel):
+    start_at: AwareDatetime
+    end_at: AwareDatetime
+    
+    @model_validator(mode="after")
+    def end_after_start(self):
+        if self.end_at <= self.start_at:
+            raise ValueError("end_at must be after start_at")
+        return self
+    
+class AvailabilityOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    gpu_id:int
+    start_at: datetime
+    end_at: datetime
+    
