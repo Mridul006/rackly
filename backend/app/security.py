@@ -60,3 +60,13 @@ def get_current_user(token: str = Depends(oauth2_scheme),db: Session = Depends(g
     if user is None:
         raise credentials_exception
     return user
+
+
+# checks if the current user is a provider for creating gpus, if not raises an HTTPException with status code 403
+def require_provider(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != "provider":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only providers can perform this action",
+        )
+    return current_user
