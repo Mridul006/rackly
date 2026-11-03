@@ -102,6 +102,14 @@ def create_booking(
             amount=-total,
         )
     )
+    db.add(
+        WalletTransaction(
+            user_id=gpu.owner_id,
+            booking_id=booking.id,
+            type="provider_payout",
+            amount=total,
+        )
+    )
     db.commit()
     db.refresh(booking)
     return booking
@@ -170,8 +178,26 @@ def cancel_booking(
             detail="A booking that has already started cannot be cancelled",
         )
 
+    gpu = db.get(GPU, booking.gpu_id)
+
     booking.status = "cancelled"
     booking.cancelled_at = now
+    db.add(
+        WalletTransaction(
+            user_id=current_user.id,
+            booking_id=booking.id,
+            type="refund",
+            amount=booking.total_price,
+        )
+    )
+    db.add(
+        WalletTransaction(
+            user_id=gpu.owner_id,
+            booking_id=booking.id,
+            type="payout_reversal",
+            amount=-booking.total_price,
+        )
+    )
     db.commit()
     db.refresh(booking)
     return booking

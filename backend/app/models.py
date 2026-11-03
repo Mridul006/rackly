@@ -58,12 +58,12 @@ class WalletTransaction(Base):
     __tablename__ = "wallet_transactions"
     __table_args__ = (
         CheckConstraint(
-            "type IN ('deposit', 'booking_charge', 'refund', 'provider_payout')",
+            "type IN ('deposit', 'booking_charge', 'refund', 'provider_payout', 'payout_reversal')",
             name="ck_wallet_transactions_type",
         ),
         CheckConstraint(
             "(type IN ('deposit', 'refund', 'provider_payout') AND amount > 0) "
-            "OR (type = 'booking_charge' AND amount < 0)",
+            "OR (type IN ('booking_charge', 'payout_reversal') AND amount < 0)",
             name="ck_wallet_transactions_amount_sign",
         ),
     )
