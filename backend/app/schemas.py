@@ -134,3 +134,16 @@ class TransactionOut(BaseModel):
     type: str
     amount: Decimal
     created_at: datetime
+    
+class GPUEarnings(BaseModel):
+    gpu_id: int
+    model: str
+    earned: Decimal
+
+
+class EarningsOut(BaseModel):
+    total: Decimal
+    gpus: list[GPUEarnings]
+    
+class GPUDashboardOut(GPUOut):
+    rented_now: bool

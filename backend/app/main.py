@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .database import get_db
-from .routers import auth, users, gpus, bookings, wallet
+from .routers import auth, users, gpus, bookings, wallet, providers
 
 
 
@@ -13,6 +13,7 @@ app.include_router(users.router)
 app.include_router(gpus.router)
 app.include_router(bookings.router)
 app.include_router(wallet.router)
+app.include_router(providers.router)
 
 @app.get("/")
 async def root():
