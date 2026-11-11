@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import BrowsePage from './pages/BrowsePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import GPUDetailPage from './pages/GPUDetailPage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         }
       >
         <Route path="/" element={<BrowsePage />} />
+        <Route path="/gpus/:gpuId" element={<GPUDetailPage />} />
       </Route>
     </Routes>
   )
