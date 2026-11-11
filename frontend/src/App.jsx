@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
+import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
-import HomePage from './pages/HomePage'
+import BrowsePage from './pages/BrowsePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 
@@ -10,13 +11,14 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route
-        path="/"
         element={
           <ProtectedRoute>
-            <HomePage />
+            <Layout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/" element={<BrowsePage />} />
+      </Route>
     </Routes>
   )
 }
