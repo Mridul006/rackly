@@ -1,7 +1,7 @@
 #this file contains all the data models used in the application
 
 from .database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, CheckConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, CheckConstraint, Index
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 
@@ -16,6 +16,19 @@ class User(Base):
 
 class GPU(Base):
     __tablename__ = "gpus"
+    __table_args__ = (
+        CheckConstraint(
+            "(rack_no IS NULL) = (slot_no IS NULL)",
+            name="ck_gpus_rack_slot_together",
+        ),
+        Index(
+            "uq_gpus_active_rack_slot",
+            "rack_no",
+            "slot_no",
+            unique=True,
+            postgresql_where=text("is_active AND rack_no IS NOT NULL"),
+        ),
+    )
 
     id = Column(Integer, primary_key=True, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)

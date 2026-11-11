@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from decimal import Decimal
-
+from ..config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ from ..database import get_db
 from ..models import GPU, AvailabilityWindow, User
 from ..schemas import AvailabilityCreate, AvailabilityOut, GPUCreate, GPUOut, GPUUpdate
 from ..security import require_provider
-
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter(prefix="/gpus", tags=["gpus"])
 
@@ -24,15 +24,81 @@ def get_owned_gpu(gpu_id: int, db: Session, current_user: User) -> GPU:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your GPU")
     return gpu
 
+def ensure_slot_free(db: Session, rack_no, slot_no, exclude_gpu_id: int | None = None) -> None:
+    if rack_no is None or slot_no is None:
+        return
+    query = select(GPU.id).where(
+        GPU.rack_no == rack_no,
+        GPU.slot_no == slot_no,
+        GPU.is_active.is_(True),
+    )
+    if exclude_gpu_id is not None:
+        query = query.where(GPU.id != exclude_gpu_id)
+    if db.scalar(query.limit(1)) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Rack {rack_no}, slot {slot_no} is already taken",
+        )
+
+def check_slot_in_range(slot_no: int | None) -> None:
+    if slot_no is not None and slot_no > settings.slots_per_rack:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"slot_no must be between 1 and {settings.slots_per_rack}",
+        )
+
+
+def next_free_position(db: Session) -> tuple[int, int]:
+    last = db.execute(
+        select(GPU.rack_no, GPU.slot_no)
+        .where(GPU.is_active.is_(True), GPU.rack_no.is_not(None))
+        .order_by(GPU.rack_no.desc(), GPU.slot_no.desc())
+        .limit(1)
+    ).first()
+
+    if last is None:
+        return 1, 1
+    rack, slot = last
+    if slot < settings.slots_per_rack:
+        return rack, slot + 1
+    return rack + 1, 1
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=GPUOut)
-def create_gpu(gpu_in: GPUCreate,db: Session = Depends(get_db),current_user: User = Depends(require_provider),):
-    gpu = GPU(**gpu_in.model_dump(), owner_id=current_user.id)
-    db.add(gpu)
-    db.commit()
-    db.refresh(gpu)
-    return gpu
+def create_gpu(
+    gpu_in: GPUCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_provider),
+):
+    data = gpu_in.model_dump()
+    auto_assign = data["rack_no"] is None  
 
+    if not auto_assign:
+        check_slot_in_range(data["slot_no"])
+        ensure_slot_free(db, data["rack_no"], data["slot_no"])
+
+    for _ in range(5):
+        if auto_assign:
+            data["rack_no"], data["slot_no"] = next_free_position(db)
+
+        gpu = GPU(**data, owner_id=current_user.id)
+        db.add(gpu)
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            if not auto_assign:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="That rack and slot is already taken",
+                )
+            continue  
+        db.refresh(gpu)
+        return gpu
+
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="Could not assign a position, please try again",
+    )
 
 @router.get("", response_model=list[GPUOut])
 def list_gpus(
@@ -79,12 +145,34 @@ def update_gpu(gpu_id: int,gpu_in: GPUUpdate,db: Session = Depends(get_db),curre
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your GPU")
 
     changes = gpu_in.model_dump(exclude_unset=True)
+    if changes.get("slot_no") is not None:
+        check_slot_in_range(changes["slot_no"])
+    new_rack = changes.get("rack_no", gpu.rack_no)
+    new_slot = changes.get("slot_no", gpu.slot_no)
+    new_active = changes.get("is_active")
+    if new_active is None:
+        new_active = gpu.is_active
+
+    if (new_rack is None) != (new_slot is None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="rack_no and slot_no must be set together",
+        )
+    if new_active:
+        ensure_slot_free(db, new_rack, new_slot, exclude_gpu_id=gpu.id)
     for field, value in changes.items():
         if value is None and field not in ("rack_no", "slot_no"):
             continue
         setattr(gpu, field, value)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That rack and slot is already taken",
+        )
     db.refresh(gpu)
     return gpu
 

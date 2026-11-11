@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     cors_origins: str = "http://localhost:5173"
+    slots_per_rack: int = 10
     
     model_config = SettingsConfigDict(env_file=".env")
         

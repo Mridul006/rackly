@@ -39,6 +39,12 @@ class GPUCreate(BaseModel):
     rack_no: int | None = Field(default=None, ge=1)
     slot_no: int | None = Field(default=None, ge=1)
 
+    @model_validator(mode="after")
+    def rack_and_slot_together(self):
+        if (self.rack_no is None) != (self.slot_no is None):
+            raise ValueError("rack_no and slot_no must be provided together")
+        return self
+
 
 class GPUUpdate(BaseModel):
     model: str | None = Field(default=None, min_length=1, max_length=100)
