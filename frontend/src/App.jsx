@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react'
-import { api } from './api'
+import { Route, Routes } from 'react-router-dom'
+import ProtectedRoute from './components/ProtectedRoute'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
 
-function App() {
-  const [status, setStatus] = useState('loading...')
-
-  useEffect(() => {
-    api('/health')
-      .then((data) => setStatus(data.status))
-      .catch((err) => setStatus(err.message))
-  }, [])
-
+export default function App() {
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-blue-600">Rackly</h1>
-      <p className="mt-2">API status: {status}</p>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   )
 }
-
-export default App
