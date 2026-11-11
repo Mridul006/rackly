@@ -5,9 +5,18 @@ from sqlalchemy.orm import Session
 from .database import get_db
 from .routers import auth, users, gpus, bookings, wallet, providers
 
-
+from fastapi.middleware.cors import CORSMiddleware
+from .config import settings
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",")],
+    allow_methods=["*"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(gpus.router)
