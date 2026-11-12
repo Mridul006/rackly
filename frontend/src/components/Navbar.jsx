@@ -7,9 +7,19 @@ export default function Navbar() {
   return (
     <nav className="border-b bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
-        <Link to="/" className="text-xl font-bold text-blue-600">
-          Rackly
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="text-xl font-bold text-blue-600">
+            Rackly
+          </Link>
+          <Link to="/" className="text-sm text-gray-700">
+            Browse
+          </Link>
+          {user.role === 'renter' && (
+            <Link to="/bookings" className="text-sm text-gray-700">
+              My bookings
+            </Link>
+          )}
+        </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-gray-600">
             {user.email} ({user.role})

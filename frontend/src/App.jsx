@@ -5,6 +5,9 @@ import BrowsePage from './pages/BrowsePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import GPUDetailPage from './pages/GPUDetailPage'
+import RoleRoute from './components/RoleRoute'
+import BookingsPage from './pages/BookingsPage'
+
 
 export default function App() {
   return (
@@ -20,6 +23,14 @@ export default function App() {
       >
         <Route path="/" element={<BrowsePage />} />
         <Route path="/gpus/:gpuId" element={<GPUDetailPage />} />
+        <Route
+          path="/bookings"
+          element={
+            <RoleRoute role="renter">
+              <BookingsPage />
+            </RoleRoute>
+          }
+        />
       </Route>
     </Routes>
   )

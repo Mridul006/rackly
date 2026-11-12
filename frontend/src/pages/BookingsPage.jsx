@@ -1,0 +1,195 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { api } from '../api'
+
+const PAGE_SIZE = 10
+const TABS = [
+  { value: '', label: 'All' },
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'active', label: 'Active' },
+  { value: 'past', label: 'Past' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+const BADGE = {
+  upcoming: 'bg-blue-100 text-blue-800',
+  active: 'bg-green-100 text-green-800',
+  completed: 'bg-gray-100 text-gray-700',
+  cancelled: 'bg-red-100 text-red-800',
+}
+
+function formatTime(iso) {
+  return new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+function bookingState(booking) {
+  if (booking.status === 'cancelled') return 'cancelled'
+  const now = new Date()
+  if (new Date(booking.start_at) > now) return 'upcoming'
+  if (new Date(booking.end_at) > now) return 'active'
+  return 'completed'
+}
+
+export default function BookingsPage() {
+  const [when, setWhen] = useState('')
+  const [offset, setOffset] = useState(0)
+  const [bookings, setBookings] = useState([])
+  const [hasNext, setHasNext] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
+  const [cancellingId, setCancellingId] = useState(null)
+  const [actionError, setActionError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    let ignore = false
+    setLoading(true)
+    setError('')
+
+    const params = new URLSearchParams()
+    params.set('limit', PAGE_SIZE + 1)
+    params.set('offset', offset)
+    if (when) params.set('when', when)
+
+    api(`/bookings?${params}`)
+      .then((data) => {
+        if (ignore) return
+        setHasNext(data.length > PAGE_SIZE)
+        setBookings(data.slice(0, PAGE_SIZE))
+      })
+      .catch((err) => {
+        if (!ignore) setError(err.message)
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [when, offset, reloadKey])
+
+  function changeTab(value) {
+    setWhen(value)
+    setOffset(0)
+    setNotice('')
+    setActionError('')
+  }
+
+  async function handleCancel(booking) {
+    const ok = window.confirm(
+      `Cancel booking #${booking.id}? $${booking.total_price} will be refunded to your wallet.`,
+    )
+    if (!ok) return
+
+    setActionError('')
+    setNotice('')
+    setCancellingId(booking.id)
+    try {
+      await api(`/bookings/${booking.id}/cancel`, { method: 'POST' })
+      setNotice(`Booking #${booking.id} cancelled. $${booking.total_price} was refunded.`)
+      setReloadKey((key) => key + 1)
+    } catch (err) {
+      setActionError(err.message)
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold">My bookings</h1>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => changeTab(tab.value)}
+            className={`rounded px-3 py-1 text-sm ${
+              when === tab.value ? 'bg-blue-600 text-white' : 'border bg-white'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {notice && <p className="mt-4 text-green-700">{notice}</p>}
+      {actionError && <p className="mt-4 text-red-600">{actionError}</p>}
+      {error && <p className="mt-6 text-red-600">{error}</p>}
+      {loading && <p className="mt-6 text-gray-500">Loading...</p>}
+      {!loading && !error && bookings.length === 0 && (
+        <p className="mt-6 text-gray-500">No bookings here yet.</p>
+      )}
+
+      {!loading && bookings.length > 0 && (
+        <div className="mt-6 overflow-x-auto rounded-lg border bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b bg-gray-50 text-gray-600">
+              <tr>
+                <th className="p-3">Booking</th>
+                <th className="p-3">GPU</th>
+                <th className="p-3">From</th>
+                <th className="p-3">To</th>
+                <th className="p-3">Total</th>
+                <th className="p-3">Status</th>
+                <th className="p-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((b) => {
+                const state = bookingState(b)
+                return (
+                  <tr key={b.id} className="border-b last:border-0">
+                    <td className="p-3">#{b.id}</td>
+                    <td className="p-3">
+                      <Link to={`/gpus/${b.gpu_id}`} className="text-blue-600">
+                        GPU #{b.gpu_id}
+                      </Link>
+                    </td>
+                    <td className="p-3">{formatTime(b.start_at)}</td>
+                    <td className="p-3">{formatTime(b.end_at)}</td>
+                    <td className="p-3">${b.total_price}</td>
+                    <td className="p-3">
+                      <span className={`rounded px-2 py-0.5 text-xs ${BADGE[state]}`}>{state}</span>
+                    </td>
+                    <td className="p-3">
+                      {state === 'upcoming' && (
+                        <button
+                          onClick={() => handleCancel(b)}
+                          disabled={cancellingId === b.id}
+                          className="rounded border border-red-300 px-3 py-1 text-red-700 disabled:opacity-50"
+                        >
+                          {cancellingId === b.id ? 'Cancelling...' : 'Cancel'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="mt-6 flex items-center gap-4">
+        <button
+          onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+          disabled={offset === 0}
+          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-600">Page {offset / PAGE_SIZE + 1}</span>
+        <button
+          onClick={() => setOffset(offset + PAGE_SIZE)}
+          disabled={!hasNext}
+          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  )
+}
