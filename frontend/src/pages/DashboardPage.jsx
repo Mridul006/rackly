@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import AvailabilityPanel from '../components/AvailabilityPanel'
 
 const EMPTY_FORM = {
   model: '',
@@ -23,6 +24,7 @@ export default function DashboardPage() {
 
   const [togglingId, setTogglingId] = useState(null)
   const [actionError, setActionError] = useState('')
+  const [openId, setOpenId] = useState(null)
 
   useEffect(() => {
     let ignore = false
@@ -90,6 +92,7 @@ export default function DashboardPage() {
         method: 'PATCH',
         body: { is_active: !gpu.is_active },
       })
+      if (gpu.is_active && openId === gpu.id) setOpenId(null)
       setReloadKey((key) => key + 1)
     } catch (err) {
       setActionError(err.message)
@@ -202,7 +205,9 @@ export default function DashboardPage() {
           {gpus.map((gpu) => (
             <div
               key={gpu.id}
-              className={`rounded-lg border bg-white p-4 shadow-sm ${gpu.is_active ? '' : 'opacity-70'}`}
+              className={`rounded-lg border bg-white p-4 shadow-sm ${gpu.is_active ? '' : 'opacity-70'} ${
+                openId === gpu.id ? 'sm:col-span-2 lg:col-span-3' : ''
+              }`}
             >
               <div className="flex flex-wrap gap-2">
                 <span
@@ -233,14 +238,19 @@ export default function DashboardPage() {
                 <span className="text-sm font-normal text-gray-500"> / hour</span>
               </p>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {gpu.is_active && (
-                  <Link
-                    to={`/gpus/${gpu.id}`}
-                    className="rounded border px-3 py-1 text-sm"
-                  >
+                  <Link to={`/gpus/${gpu.id}`} className="rounded border px-3 py-1 text-sm">
                     View
                   </Link>
+                )}
+                {gpu.is_active && (
+                  <button
+                    onClick={() => setOpenId(openId === gpu.id ? null : gpu.id)}
+                    className="rounded border px-3 py-1 text-sm"
+                  >
+                    {openId === gpu.id ? 'Hide availability' : 'Availability'}
+                  </button>
                 )}
                 <button
                   onClick={() => handleToggle(gpu)}
@@ -254,6 +264,8 @@ export default function DashboardPage() {
                       : 'Switch on'}
                 </button>
               </div>
+
+              {openId === gpu.id && gpu.is_active && <AvailabilityPanel gpuId={gpu.id} />}
             </div>
           ))}
         </div>

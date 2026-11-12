@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
+import { formatTime } from '../format'
 
-function formatTime(iso) {
-  return new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-}
 
 export default function GPUDetailPage() {
   const { gpuId } = useParams()

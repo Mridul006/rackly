@@ -9,6 +9,9 @@ import RoleRoute from './components/RoleRoute'
 import BookingsPage from './pages/BookingsPage'
 import WalletPage from './pages/WalletPage'
 import DashboardPage from './pages/DashboardPage'
+import EarningsPage from './pages/EarningsPage'
+import ProviderBookingsPage from './pages/ProviderBookingsPage'
+
 
 export default function App() {
   return (
@@ -38,6 +41,22 @@ export default function App() {
           element={
             <RoleRoute role="provider">
               <DashboardPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/dashboard/bookings"
+          element={
+            <RoleRoute role="provider">
+              <ProviderBookingsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/dashboard/earnings"
+          element={
+            <RoleRoute role="provider">
+              <EarningsPage />
             </RoleRoute>
           }
         />

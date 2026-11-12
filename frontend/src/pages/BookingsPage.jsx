@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import { bookingState, formatTime, STATE_BADGE } from '../format'
 
 const PAGE_SIZE = 10
+
 const TABS = [
   { value: '', label: 'All' },
   { value: 'upcoming', label: 'Upcoming' },
@@ -10,25 +12,6 @@ const TABS = [
   { value: 'past', label: 'Past' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
-
-const BADGE = {
-  upcoming: 'bg-blue-100 text-blue-800',
-  active: 'bg-green-100 text-green-800',
-  completed: 'bg-gray-100 text-gray-700',
-  cancelled: 'bg-red-100 text-red-800',
-}
-
-function formatTime(iso) {
-  return new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-function bookingState(booking) {
-  if (booking.status === 'cancelled') return 'cancelled'
-  const now = new Date()
-  if (new Date(booking.start_at) > now) return 'upcoming'
-  if (new Date(booking.end_at) > now) return 'active'
-  return 'completed'
-}
 
 export default function BookingsPage() {
   const [when, setWhen] = useState('')
@@ -152,7 +135,7 @@ export default function BookingsPage() {
                     <td className="p-3">{formatTime(b.end_at)}</td>
                     <td className="p-3">${b.total_price}</td>
                     <td className="p-3">
-                      <span className={`rounded px-2 py-0.5 text-xs ${BADGE[state]}`}>{state}</span>
+                      <span className={`rounded px-2 py-0.5 text-xs ${STATE_BADGE[state]}`}>{state}</span>
                     </td>
                     <td className="p-3">
                       {state === 'upcoming' && (

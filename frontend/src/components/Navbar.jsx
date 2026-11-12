@@ -20,9 +20,17 @@ export default function Navbar() {
             </Link>
           )}
           {user.role === 'provider' && (
-            <Link to="/dashboard" className="text-sm text-gray-700">
-              My GPUs
-            </Link>
+            <>
+              <Link to="/dashboard" className="text-sm text-gray-700">
+                My GPUs
+              </Link>
+              <Link to="/dashboard/bookings" className="text-sm text-gray-700">
+                Rentals
+              </Link>
+              <Link to="/dashboard/earnings" className="text-sm text-gray-700">
+                Earnings
+              </Link>
+            </>
           )}
           <Link to="/wallet" className="text-sm text-gray-700">
             Wallet

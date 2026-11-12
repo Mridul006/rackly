@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
+import { formatSigned, formatTime } from '../format'
 
 const PAGE_SIZE = 10
 
@@ -13,14 +14,6 @@ const TYPE_LABELS = {
   payout_reversal: 'Earnings reversed (cancelled booking)',
 }
 
-function formatTime(iso) {
-  return new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-function formatSigned(value) {
-  const n = Number(value)
-  return `${n < 0 ? '-' : '+'}$${Math.abs(n).toFixed(2)}`
-}
 
 export default function WalletPage() {
   const { user } = useAuth()
