@@ -7,7 +7,7 @@ import SignupPage from './pages/SignupPage'
 import GPUDetailPage from './pages/GPUDetailPage'
 import RoleRoute from './components/RoleRoute'
 import BookingsPage from './pages/BookingsPage'
-
+import WalletPage from './pages/WalletPage'
 
 export default function App() {
   return (
@@ -31,6 +31,7 @@ export default function App() {
             </RoleRoute>
           }
         />
+        <Route path="/wallet" element={<WalletPage />} />
       </Route>
     </Routes>
   )

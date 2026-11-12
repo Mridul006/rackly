@@ -19,6 +19,9 @@ export default function Navbar() {
               My bookings
             </Link>
           )}
+          <Link to="/wallet" className="text-sm text-gray-700">
+            Wallet
+          </Link>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-gray-600">
