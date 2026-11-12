@@ -128,8 +128,9 @@ export default function BookingsPage() {
                     <td className="p-3">#{b.id}</td>
                     <td className="p-3">
                       <Link to={`/gpus/${b.gpu_id}`} className="text-brand">
-                        GPU #{b.gpu_id}
+                          {b.gpu_model}
                       </Link>
+                      <p className="text-xs text-muted">{b.gpu_location}</p>
                     </td>
                     <td className="p-3">{formatTime(b.start_at)}</td>
                     <td className="p-3">{formatTime(b.end_at)}</td>

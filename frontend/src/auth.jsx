@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { api, clearToken, getToken, setToken } from './api'
+import { api, clearToken, getToken, setToken, setUnauthorizedHandler } from './api'
 
 const AuthContext = createContext(null)
 
@@ -7,6 +7,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loggedOut, setLoggedOut] = useState(false)
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null)
+      setSessionExpired(true)
+    })
+    return () => setUnauthorizedHandler(null)
+  }, [])
 
   useEffect(() => {
     if (!getToken()) {
@@ -26,8 +35,8 @@ export function AuthProvider({ children }) {
     })
     setToken(data.access_token)
     setUser(await api('/users/me'))
-    setUser(await api('/users/me'))
     setLoggedOut(false)
+    setSessionExpired(false)
   }
 
   async function signup(email, password, role) {
@@ -39,10 +48,13 @@ export function AuthProvider({ children }) {
     clearToken()
     setUser(null)
     setLoggedOut(true)
+    setSessionExpired(false)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loggedOut, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, loggedOut, sessionExpired, login, signup, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

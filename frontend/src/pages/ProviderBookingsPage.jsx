@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { bookingState, formatTime, STATE_BADGE } from '../format'
 
@@ -16,23 +15,11 @@ export default function ProviderBookingsPage() {
   const [when, setWhen] = useState('')
   const [offset, setOffset] = useState(0)
   const [bookings, setBookings] = useState([])
-  const [models, setModels] = useState({})
   const [hasNext, setHasNext] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    api('/providers/me/gpus')
-      .then((gpus) => {
-        const lookup = {}
-        gpus.forEach((g) => {
-          lookup[g.id] = g.model
-        })
-        setModels(lookup)
-      })
-      .catch(() => {})
-  }, [])
-
+  
   useEffect(() => {
     let ignore = false
     setLoading(true)
@@ -109,9 +96,8 @@ export default function ProviderBookingsPage() {
                 return (
                   <tr key={b.id} className="border-b last:border-0">
                     <td className="p-3">
-                      <Link to="/dashboard" className="text-brand">
-                        {models[b.gpu_id] ?? `GPU #${b.gpu_id}`}
-                      </Link>
+                      <p>{b.gpu_model}</p>
+                      <p className="text-xs text-muted">{b.gpu_location}</p>
                     </td>
                     <td className="p-3">Renter #{b.renter_id}</td>
                     <td className="p-3">{formatTime(b.start_at)}</td>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, sessionExpired  } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -28,6 +28,9 @@ export default function LoginPage() {
   return (
     <div className="mx-auto mt-20 max-w-sm p-6">
       <h1 className="text-2xl font-bold">Log in</h1>
+      {sessionExpired && (
+        <p className="mt-4 text-rented">Your session expired. Log in again.</p>
+      )}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <input
           type="email"

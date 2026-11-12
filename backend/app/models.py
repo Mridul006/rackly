@@ -4,6 +4,7 @@ from .database import Base
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, CheckConstraint, Index
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -65,6 +66,16 @@ class Booking(Base):
     status = Column(String, nullable=False, server_default='confirmed')
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     cancelled_at = Column(TIMESTAMP(timezone=True), nullable=True)
+
+    gpu = relationship("GPU", lazy="selectin")
+
+    @property
+    def gpu_model(self) -> str:
+        return self.gpu.model
+
+    @property
+    def gpu_location(self) -> str:
+        return self.gpu.location
     
     
 class WalletTransaction(Base):

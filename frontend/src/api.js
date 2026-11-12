@@ -1,5 +1,11 @@
 const BASE_URL = import.meta.env.VITE_API_URL
 
+let onUnauthorized = null
+
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = handler
+}
+
 export function getToken() {
   return localStorage.getItem('token')
 }
@@ -33,6 +39,11 @@ export async function api(path, { method = 'GET', body, form } = {}) {
   }
 
   const response = await fetch(`${BASE_URL}${path}`, { method, headers, body: payload })
+
+  if (response.status === 401 && token && path !== '/auth/login') {
+    clearToken()
+    if (onUnauthorized) onUnauthorized()
+  }
 
   if (response.status === 204) return null
   const data = await response.json().catch(() => null)

@@ -114,6 +114,8 @@ class BookingOut(BaseModel):
 
     id: int
     gpu_id: int
+    gpu_model: str
+    gpu_location: str
     renter_id: int
     start_at: datetime
     end_at: datetime
