@@ -8,6 +8,7 @@ import GPUDetailPage from './pages/GPUDetailPage'
 import RoleRoute from './components/RoleRoute'
 import BookingsPage from './pages/BookingsPage'
 import WalletPage from './pages/WalletPage'
+import DashboardPage from './pages/DashboardPage'
 
 export default function App() {
   return (
@@ -32,6 +33,14 @@ export default function App() {
           }
         />
         <Route path="/wallet" element={<WalletPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RoleRoute role="provider">
+              <DashboardPage />
+            </RoleRoute>
+          }
+        />
       </Route>
     </Routes>
   )

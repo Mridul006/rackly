@@ -19,6 +19,11 @@ export default function Navbar() {
               My bookings
             </Link>
           )}
+          {user.role === 'provider' && (
+            <Link to="/dashboard" className="text-sm text-gray-700">
+              My GPUs
+            </Link>
+          )}
           <Link to="/wallet" className="text-sm text-gray-700">
             Wallet
           </Link>
