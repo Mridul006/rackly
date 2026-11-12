@@ -156,7 +156,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section id="how" className="border-b border-line bg-page/85 backdrop-blur-sm">
+          <section id="how" className="border-b border-line bg-page/90">
             <div className="px-8 pt-16">
               <p className="font-mono text-xs uppercase tracking-widest text-muted">How it works</p>
               <h2 className="mt-3 max-w-xl text-3xl font-light tracking-tight sm:text-4xl">
@@ -173,7 +173,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section id="under-the-hood" className="border-b border-line bg-page/85 backdrop-blur-sm">
+          <section id="under-the-hood" className="border-b border-line bg-page/90">
             <div className="px-8 pt-16">
               <p className="font-mono text-xs uppercase tracking-widest text-muted">Under the hood</p>
               <h2 className="mt-3 max-w-xl text-3xl font-light tracking-tight sm:text-4xl">
@@ -196,7 +196,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          <section className="bg-page/85 px-8 py-24 backdrop-blur-sm">
+          <section className="bg-page/90 px-8 py-24">
             <h2 className="max-w-2xl text-4xl font-light leading-tight tracking-tight sm:text-6xl">
               Your GPUs. Their workloads. One room.
             </h2>

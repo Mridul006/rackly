@@ -14,7 +14,7 @@ export default function DatacenterPage() {
 
   return (
     <div className="relative h-[calc(100vh-9rem)] w-full overflow-hidden border border-line bg-page">
-      <DatacenterScene gpus={SAMPLE_GPUS} interactive={interactive} />
+      <DatacenterScene gpus={SAMPLE_GPUS} mode={interactive ? 'orbit' : 'drift'}/>
 
       <div className="pointer-events-none absolute left-4 top-4 space-y-2 font-mono text-xs uppercase tracking-widest">
         <p className="text-muted">Datacenter · sample data</p>

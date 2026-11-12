@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { CanvasTexture, SRGBColorSpace } from 'three'
+import { CanvasTexture, MathUtils, SRGBColorSpace } from 'three'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Environment, Grid, Instance, Instances, Lightformer, OrbitControls } from '@react-three/drei'
 import { BEZEL, buildLayout, ROW_LENGTH } from '../../scene/layout'
@@ -172,12 +172,37 @@ function CameraDrift() {
   return null
 }
 
-export default function DatacenterScene({ gpus, interactive = false }) {
+function ScrollCamera({ progress, frozen }) {
+  const current = useRef({ x: -12, y: 1.7, z: 0 })
+  const time = useRef(0)
+
+  useFrame((state, delta) => {
+    time.current += delta
+    const p = frozen ? 0 : progress.current
+    const sway = frozen ? 0 : Math.sin(time.current * 0.15) * 0.25
+
+    const targetX = -12 + p * 26
+    const targetY = 1.7 + p * 0.9
+    const targetZ = Math.sin(p * Math.PI * 2) * 0.7 + sway
+
+    const c = current.current
+    c.x = MathUtils.damp(c.x, targetX, 3, delta)
+    c.y = MathUtils.damp(c.y, targetY, 3, delta)
+    c.z = MathUtils.damp(c.z, targetZ, 3, delta)
+
+    state.camera.position.set(c.x, c.y, c.z)
+    state.camera.lookAt(c.x + 18, 1.3, c.z * 0.6)
+  })
+
+  return null
+}
+
+export default function DatacenterScene({ gpus, mode = 'drift', progress, frozen = false, dpr = [1, 2] }) {
   const layout = useMemo(() => buildLayout(gpus), [gpus])
   const colors = useMemo(() => statusColors(), [])
 
   return (
-    <Canvas camera={{ position: [-12, 1.7, 0], fov: 50 }} dpr={[1, 2]}>
+    <Canvas camera={{ position: [-12, 1.7, 0], fov: 50 }} dpr={dpr}>
       <color attach="background" args={['#050505']} />
       <fog attach="fog" args={['#050505', 12, 46]} />
 
@@ -213,7 +238,7 @@ export default function DatacenterScene({ gpus, interactive = false }) {
       <Leds leds={layout.leds} colors={colors} />
       <CeilingLights lights={layout.lights} />
 
-      {interactive ? (
+      {mode === 'orbit' && (
         <OrbitControls
           target={[0, 1.2, 0]}
           enablePan
@@ -222,9 +247,9 @@ export default function DatacenterScene({ gpus, interactive = false }) {
           maxDistance={40}
           maxPolarAngle={Math.PI / 2.05}
         />
-      ) : (
-        <CameraDrift />
       )}
+      {mode === 'drift' && <CameraDrift />}
+      {mode === 'scroll' && <ScrollCamera progress={progress} frozen={frozen} />}
     </Canvas>
   )
 }
