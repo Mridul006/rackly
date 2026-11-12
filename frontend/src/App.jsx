@@ -1,23 +1,42 @@
 import { Route, Routes } from 'react-router-dom'
+import GuestRoute from './components/GuestRoute'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
-import BrowsePage from './pages/BrowsePage'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import GPUDetailPage from './pages/GPUDetailPage'
 import RoleRoute from './components/RoleRoute'
 import BookingsPage from './pages/BookingsPage'
-import WalletPage from './pages/WalletPage'
+import BrowsePage from './pages/BrowsePage'
 import DashboardPage from './pages/DashboardPage'
+import DatacenterPage from './pages/DatacenterPage'
 import EarningsPage from './pages/EarningsPage'
+import GPUDetailPage from './pages/GPUDetailPage'
+import LandingPage from './pages/LandingPage'
+import LoginPage from './pages/LoginPage'
+import NotFoundPage from './pages/NotFoundPage'
 import ProviderBookingsPage from './pages/ProviderBookingsPage'
-
+import SignupPage from './pages/SignupPage'
+import WalletPage from './pages/WalletPage'
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <LoginPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <GuestRoute>
+            <SignupPage />
+          </GuestRoute>
+        }
+      />
+
       <Route
         element={
           <ProtectedRoute>
@@ -25,8 +44,10 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<BrowsePage />} />
+        <Route path="/browse" element={<BrowsePage />} />
         <Route path="/gpus/:gpuId" element={<GPUDetailPage />} />
+        <Route path="/datacenter" element={<DatacenterPage />} />
+        <Route path="/wallet" element={<WalletPage />} />
         <Route
           path="/bookings"
           element={
@@ -35,7 +56,6 @@ export default function App() {
             </RoleRoute>
           }
         />
-        <Route path="/wallet" element={<WalletPage />} />
         <Route
           path="/dashboard"
           element={
@@ -60,6 +80,7 @@ export default function App() {
             </RoleRoute>
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )

@@ -81,19 +81,19 @@ export default function WalletPage() {
     <div>
       <h1 className="text-2xl font-bold">Wallet</h1>
 
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-danger">{error}</p>}
 
-      <div className="mt-4 max-w-sm rounded-lg border bg-white p-4">
-        <p className="text-sm text-gray-600">Current balance</p>
-        <p className="text-3xl font-bold text-blue-600">
+      <div className="mt-4 max-w-sm rounded-lg border bg-surface p-4">
+        <p className="text-sm text-muted">Current balance</p>
+        <p className="text-3xl font-bold text-brand">
           {balance === null ? '...' : `$${balance}`}
         </p>
       </div>
 
       {isRenter && (
-        <form onSubmit={handleDeposit} className="mt-6 max-w-sm space-y-3 rounded-lg border bg-white p-4">
+        <form onSubmit={handleDeposit} className="mt-6 max-w-sm space-y-3 rounded-lg border bg-surface p-4">
           <h2 className="text-lg font-semibold">Add money</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             This is a simulated deposit. No real payment is made.
           </p>
           <input
@@ -107,12 +107,12 @@ export default function WalletPage() {
             required
             className="w-full rounded border p-2"
           />
-          {depositError && <p className="text-red-600">{depositError}</p>}
-          {notice && <p className="text-green-700">{notice}</p>}
+          {depositError && <p className="text-danger">{depositError}</p>}
+          {notice && <p className="text-available">{notice}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded bg-blue-600 p-2 text-white disabled:opacity-50"
+            className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
           >
             {submitting ? 'Adding...' : 'Add money'}
           </button>
@@ -121,15 +121,15 @@ export default function WalletPage() {
 
       <h2 className="mt-8 text-lg font-semibold">History</h2>
 
-      {loading && <p className="mt-4 text-gray-500">Loading...</p>}
+      {loading && <p className="mt-4 text-muted">Loading...</p>}
       {!loading && !error && transactions.length === 0 && (
-        <p className="mt-4 text-gray-500">No transactions yet.</p>
+        <p className="mt-4 text-muted">No transactions yet.</p>
       )}
 
       {!loading && transactions.length > 0 && (
-        <div className="mt-4 overflow-x-auto rounded-lg border bg-white">
+        <div className="mt-4 overflow-x-auto rounded-lg border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b bg-gray-50 text-gray-600">
+            <thead className="border-b bg-raised text-muted">
               <tr>
                 <th className="p-3">When</th>
                 <th className="p-3">What</th>
@@ -145,7 +145,7 @@ export default function WalletPage() {
                   <td className="p-3">
                     {t.booking_id ? (
                       isRenter ? (
-                        <Link to="/bookings" className="text-blue-600">
+                        <Link to="/bookings" className="text-brand">
                           #{t.booking_id}
                         </Link>
                       ) : (
@@ -157,7 +157,7 @@ export default function WalletPage() {
                   </td>
                   <td
                     className={`p-3 text-right font-medium ${
-                      Number(t.amount) < 0 ? 'text-red-600' : 'text-green-700'
+                      Number(t.amount) < 0 ? 'text-danger' : 'text-available'
                     }`}
                   >
                     {formatSigned(t.amount)}
@@ -173,15 +173,15 @@ export default function WalletPage() {
         <button
           onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
           disabled={offset === 0}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600">Page {offset / PAGE_SIZE + 1}</span>
+        <span className="text-sm text-muted">Page {offset / PAGE_SIZE + 1}</span>
         <button
           onClick={() => setOffset(offset + PAGE_SIZE)}
           disabled={!hasNext}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Next
         </button>

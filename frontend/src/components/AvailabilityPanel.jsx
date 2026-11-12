@@ -83,12 +83,12 @@ export default function AvailabilityPanel({ gpuId }) {
   return (
     <div className="mt-4 border-t pt-4">
       <h4 className="font-semibold">Availability</h4>
-      <p className="text-xs text-gray-500">Times are in your local time zone.</p>
+      <p className="text-xs text-muted">Times are in your local time zone.</p>
 
-      {error && <p className="mt-2 text-red-600">{error}</p>}
-      {loading && <p className="mt-2 text-sm text-gray-500">Loading...</p>}
+      {error && <p className="mt-2 text-danger">{error}</p>}
+      {loading && <p className="mt-2 text-sm text-muted">Loading...</p>}
       {!loading && !error && windows.length === 0 && (
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-muted">
           No upcoming windows. Renters cannot book until you add one.
         </p>
       )}
@@ -103,7 +103,7 @@ export default function AvailabilityPanel({ gpuId }) {
               <button
                 onClick={() => handleDelete(w)}
                 disabled={deletingId === w.id}
-                className="rounded border border-red-300 px-2 py-0.5 text-xs text-red-700 disabled:opacity-50"
+                className="rounded border border-danger/40 px-2 py-0.5 text-xs text-danger disabled:opacity-50"
               >
                 {deletingId === w.id ? '...' : 'Remove'}
               </button>
@@ -136,12 +136,12 @@ export default function AvailabilityPanel({ gpuId }) {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-blue-600 p-2 text-sm text-white disabled:opacity-50"
+          className="rounded bg-brand p-2 text-sm text-page disabled:opacity-50"
         >
           {submitting ? 'Adding...' : 'Add window'}
         </button>
       </form>
-      {formError && <p className="mt-2 text-sm text-red-600">{formError}</p>}
+      {formError && <p className="mt-2 text-sm text-danger">{formError}</p>}
     </div>
   )
 }

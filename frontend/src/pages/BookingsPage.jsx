@@ -90,7 +90,7 @@ export default function BookingsPage() {
             key={tab.value}
             onClick={() => changeTab(tab.value)}
             className={`rounded px-3 py-1 text-sm ${
-              when === tab.value ? 'bg-blue-600 text-white' : 'border bg-white'
+              when === tab.value ? 'bg-brand text-page' : 'border bg-surface'
             }`}
           >
             {tab.label}
@@ -98,18 +98,18 @@ export default function BookingsPage() {
         ))}
       </div>
 
-      {notice && <p className="mt-4 text-green-700">{notice}</p>}
-      {actionError && <p className="mt-4 text-red-600">{actionError}</p>}
-      {error && <p className="mt-6 text-red-600">{error}</p>}
-      {loading && <p className="mt-6 text-gray-500">Loading...</p>}
+      {notice && <p className="mt-4 text-available">{notice}</p>}
+      {actionError && <p className="mt-4 text-danger">{actionError}</p>}
+      {error && <p className="mt-6 text-danger">{error}</p>}
+      {loading && <p className="mt-6 text-muted">Loading...</p>}
       {!loading && !error && bookings.length === 0 && (
-        <p className="mt-6 text-gray-500">No bookings here yet.</p>
+        <p className="mt-6 text-muted">No bookings here yet.</p>
       )}
 
       {!loading && bookings.length > 0 && (
-        <div className="mt-6 overflow-x-auto rounded-lg border bg-white">
+        <div className="mt-6 overflow-x-auto rounded-lg border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b bg-gray-50 text-gray-600">
+            <thead className="border-b bg-raised text-muted">
               <tr>
                 <th className="p-3">Booking</th>
                 <th className="p-3">GPU</th>
@@ -127,7 +127,7 @@ export default function BookingsPage() {
                   <tr key={b.id} className="border-b last:border-0">
                     <td className="p-3">#{b.id}</td>
                     <td className="p-3">
-                      <Link to={`/gpus/${b.gpu_id}`} className="text-blue-600">
+                      <Link to={`/gpus/${b.gpu_id}`} className="text-brand">
                         GPU #{b.gpu_id}
                       </Link>
                     </td>
@@ -142,7 +142,7 @@ export default function BookingsPage() {
                         <button
                           onClick={() => handleCancel(b)}
                           disabled={cancellingId === b.id}
-                          className="rounded border border-red-300 px-3 py-1 text-red-700 disabled:opacity-50"
+                          className="rounded border border-danger/40 px-3 py-1 text-danger disabled:opacity-50"
                         >
                           {cancellingId === b.id ? 'Cancelling...' : 'Cancel'}
                         </button>
@@ -160,15 +160,15 @@ export default function BookingsPage() {
         <button
           onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
           disabled={offset === 0}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600">Page {offset / PAGE_SIZE + 1}</span>
+        <span className="text-sm text-muted">Page {offset / PAGE_SIZE + 1}</span>
         <button
           onClick={() => setOffset(offset + PAGE_SIZE)}
           disabled={!hasNext}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Next
         </button>

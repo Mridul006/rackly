@@ -18,7 +18,7 @@ export default function SignupPage() {
     setSubmitting(true)
     try {
       await signup(email, password, role)
-      navigate('/')
+      navigate('/browse')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -55,18 +55,18 @@ export default function SignupPage() {
           <option value="renter">I want to rent GPUs</option>
           <option value="provider">I want to list my GPUs</option>
         </select>
-        {error && <p className="text-red-600">{error}</p>}
+        {error && <p className="text-danger">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded bg-blue-600 p-2 text-white disabled:opacity-50"
+          className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
         >
           {submitting ? 'Creating account...' : 'Sign up'}
         </button>
       </form>
       <p className="mt-4 text-sm">
         Already have an account?{' '}
-        <Link to="/login" className="text-blue-600">
+        <Link to="/login" className="text-brand">
           Log in
         </Link>
       </p>

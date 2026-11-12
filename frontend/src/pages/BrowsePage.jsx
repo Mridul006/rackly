@@ -69,7 +69,7 @@ export default function BrowsePage() {
           placeholder="Model (e.g. A100)"
           value={draft.model}
           onChange={(e) => updateDraft('model', e.target.value)}
-          className="rounded border bg-white p-2"
+          className="rounded border bg-surface p-2"
         />
         <input
           type="number"
@@ -78,7 +78,7 @@ export default function BrowsePage() {
           placeholder="Max price / hour"
           value={draft.maxPrice}
           onChange={(e) => updateDraft('maxPrice', e.target.value)}
-          className="w-44 rounded border bg-white p-2"
+          className="w-44 rounded border bg-surface p-2"
         />
         <input
           type="number"
@@ -86,20 +86,20 @@ export default function BrowsePage() {
           placeholder="Min GPUs"
           value={draft.minCount}
           onChange={(e) => updateDraft('minCount', e.target.value)}
-          className="w-32 rounded border bg-white p-2"
+          className="w-32 rounded border bg-surface p-2"
         />
-        <button type="submit" className="rounded bg-blue-600 px-4 py-2 text-white">
+        <button type="submit" className="rounded bg-brand px-4 py-2 text-page">
           Apply
         </button>
-        <button type="button" onClick={clearFilters} className="rounded border bg-white px-4 py-2">
+        <button type="button" onClick={clearFilters} className="rounded border bg-surface px-4 py-2">
           Clear
         </button>
       </form>
 
-      {error && <p className="mt-6 text-red-600">{error}</p>}
-      {loading && <p className="mt-6 text-gray-500">Loading...</p>}
+      {error && <p className="mt-6 text-danger">{error}</p>}
+      {loading && <p className="mt-6 text-muted">Loading...</p>}
       {!loading && !error && gpus.length === 0 && (
-        <p className="mt-6 text-gray-500">No GPUs match your filters.</p>
+        <p className="mt-6 text-muted">No GPUs match your filters.</p>
       )}
 
       {!loading && gpus.length > 0 && (
@@ -114,15 +114,15 @@ export default function BrowsePage() {
         <button
           onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
           disabled={offset === 0}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600">Page {offset / PAGE_SIZE + 1}</span>
+        <span className="text-sm text-muted">Page {offset / PAGE_SIZE + 1}</span>
         <button
           onClick={() => setOffset(offset + PAGE_SIZE)}
           disabled={!hasNext}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Next
         </button>

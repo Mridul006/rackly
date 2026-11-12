@@ -50,8 +50,8 @@ export default function GPUDetailPage() {
     }
   }, [gpuId, isRenter])
 
-  if (loading) return <p className="text-gray-500">Loading...</p>
-  if (error) return <p className="text-red-600">{error}</p>
+  if (loading) return <p className="text-muted">Loading...</p>
+  if (error) return <p className="text-danger">{error}</p>
 
   const startDate = start ? new Date(start) : null
   const endDate = startDate ? new Date(startDate.getTime() + hours * 3600 * 1000) : null
@@ -86,27 +86,27 @@ export default function GPUDetailPage() {
 
   return (
     <div>
-      <Link to="/" className="text-sm text-blue-600">
+      <Link to="/browse" className="text-sm text-brand">
         ← Back to browse
       </Link>
 
       <h1 className="mt-4 text-3xl font-bold">{gpu.model}</h1>
-      <p className="mt-1 text-gray-600">
+      <p className="mt-1 text-muted">
         {gpu.gpu_count} × {gpu.vram_gb} GB VRAM · {gpu.location}
       </p>
       {gpu.rack_no !== null && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           Rack {gpu.rack_no}, slot {gpu.slot_no}
         </p>
       )}
-      <p className="mt-3 text-2xl font-bold text-blue-600">
+      <p className="mt-3 text-2xl font-bold text-brand">
         ${gpu.price_per_hour}
-        <span className="text-base font-normal text-gray-500"> / hour</span>
+        <span className="text-base font-normal text-muted"> / hour</span>
       </p>
 
       <h2 className="mt-8 text-lg font-semibold">Available times</h2>
       {windows.length === 0 ? (
-        <p className="mt-2 text-gray-500">The provider has not opened any availability yet.</p>
+        <p className="mt-2 text-muted">The provider has not opened any availability yet.</p>
       ) : (
         <ul className="mt-2 space-y-1 text-sm">
           {windows.map((w) => (
@@ -118,9 +118,9 @@ export default function GPUDetailPage() {
       )}
 
       {isRenter ? (
-        <form onSubmit={handleBook} className="mt-8 max-w-sm space-y-4 rounded-lg border bg-white p-4">
+        <form onSubmit={handleBook} className="mt-8 max-w-sm space-y-4 rounded-lg border bg-surface p-4">
           <h2 className="text-lg font-semibold">Book this GPU</h2>
-          <p className="text-sm text-gray-600">Wallet balance: ${balance}</p>
+          <p className="text-sm text-muted">Wallet balance: ${balance}</p>
 
           <label className="block text-sm">
             Start time
@@ -147,20 +147,20 @@ export default function GPUDetailPage() {
           </label>
 
           {startDate && (
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-ink">
               <p>Ends: {formatTime(endDate)}</p>
               <p className="font-semibold">Total: ${total.toFixed(2)}</p>
               {!insideWindow && (
-                <p className="mt-1 text-amber-600">
+                <p className="mt-1 text-rented">
                   This time is not inside an available window.
                 </p>
               )}
             </div>
           )}
 
-          {bookingError && <p className="text-red-600">{bookingError}</p>}
+          {bookingError && <p className="text-danger">{bookingError}</p>}
           {booked && (
-            <p className="text-green-700">
+            <p className="text-available">
               Booked! Total charged: ${booked.total_price}. Booking number {booked.id}.
             </p>
           )}
@@ -168,13 +168,13 @@ export default function GPUDetailPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded bg-blue-600 p-2 text-white disabled:opacity-50"
+            className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
           >
             {submitting ? 'Booking...' : 'Book now'}
           </button>
         </form>
       ) : (
-        <p className="mt-8 text-sm text-gray-500">
+        <p className="mt-8 text-sm text-muted">
           {gpu.owner_id === user.id
             ? 'This is your listing.'
             : 'Only renters can book GPUs.'}

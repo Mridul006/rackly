@@ -6,6 +6,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loggedOut, setLoggedOut] = useState(false)
 
   useEffect(() => {
     if (!getToken()) {
@@ -25,6 +26,8 @@ export function AuthProvider({ children }) {
     })
     setToken(data.access_token)
     setUser(await api('/users/me'))
+    setUser(await api('/users/me'))
+    setLoggedOut(false)
   }
 
   async function signup(email, password, role) {
@@ -35,10 +38,11 @@ export function AuthProvider({ children }) {
   function logout() {
     clearToken()
     setUser(null)
+    setLoggedOut(true)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, loggedOut, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )

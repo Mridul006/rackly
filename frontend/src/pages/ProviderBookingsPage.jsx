@@ -76,7 +76,7 @@ export default function ProviderBookingsPage() {
             key={tab.value}
             onClick={() => changeTab(tab.value)}
             className={`rounded px-3 py-1 text-sm ${
-              when === tab.value ? 'bg-blue-600 text-white' : 'border bg-white'
+              when === tab.value ? 'bg-brand text-page' : 'border bg-surface'
             }`}
           >
             {tab.label}
@@ -84,16 +84,16 @@ export default function ProviderBookingsPage() {
         ))}
       </div>
 
-      {error && <p className="mt-6 text-red-600">{error}</p>}
-      {loading && <p className="mt-6 text-gray-500">Loading...</p>}
+      {error && <p className="mt-6 text-danger">{error}</p>}
+      {loading && <p className="mt-6 text-muted">Loading...</p>}
       {!loading && !error && bookings.length === 0 && (
-        <p className="mt-6 text-gray-500">No rentals here yet.</p>
+        <p className="mt-6 text-muted">No rentals here yet.</p>
       )}
 
       {!loading && bookings.length > 0 && (
-        <div className="mt-6 overflow-x-auto rounded-lg border bg-white">
+        <div className="mt-6 overflow-x-auto rounded-lg border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b bg-gray-50 text-gray-600">
+            <thead className="border-b bg-raised text-muted">
               <tr>
                 <th className="p-3">GPU</th>
                 <th className="p-3">Renter</th>
@@ -109,14 +109,14 @@ export default function ProviderBookingsPage() {
                 return (
                   <tr key={b.id} className="border-b last:border-0">
                     <td className="p-3">
-                      <Link to="/dashboard" className="text-blue-600">
+                      <Link to="/dashboard" className="text-brand">
                         {models[b.gpu_id] ?? `GPU #${b.gpu_id}`}
                       </Link>
                     </td>
                     <td className="p-3">Renter #{b.renter_id}</td>
                     <td className="p-3">{formatTime(b.start_at)}</td>
                     <td className="p-3">{formatTime(b.end_at)}</td>
-                    <td className={`p-3 ${state === 'cancelled' ? 'text-gray-400 line-through' : ''}`}>
+                    <td className={`p-3 ${state === 'cancelled' ? 'text-muted line-through' : ''}`}>
                       ${b.total_price}
                     </td>
                     <td className="p-3">
@@ -136,15 +136,15 @@ export default function ProviderBookingsPage() {
         <button
           onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
           disabled={offset === 0}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600">Page {offset / PAGE_SIZE + 1}</span>
+        <span className="text-sm text-muted">Page {offset / PAGE_SIZE + 1}</span>
         <button
           onClick={() => setOffset(offset + PAGE_SIZE)}
           disabled={!hasNext}
-          className="rounded border bg-white px-4 py-2 disabled:opacity-50"
+          className="rounded border bg-surface px-4 py-2 disabled:opacity-50"
         >
           Next
         </button>

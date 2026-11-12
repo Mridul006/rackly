@@ -107,7 +107,7 @@ export default function DashboardPage() {
 
       <form
         onSubmit={handleCreate}
-        className="mt-4 grid max-w-2xl gap-3 rounded-lg border bg-white p-4 sm:grid-cols-2"
+        className="mt-4 grid max-w-2xl gap-3 rounded-lg border bg-surface p-4 sm:grid-cols-2"
       >
         <h2 className="text-lg font-semibold sm:col-span-2">List a new GPU</h2>
 
@@ -178,26 +178,26 @@ export default function DashboardPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded bg-blue-600 p-2 text-white disabled:opacity-50"
+            className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
           >
             {submitting ? 'Listing...' : 'List GPU'}
           </button>
         </div>
 
-        {formError && <p className="text-red-600 sm:col-span-2">{formError}</p>}
+        {formError && <p className="text-danger sm:col-span-2">{formError}</p>}
         {created && (
-          <p className="text-green-700 sm:col-span-2">
+          <p className="text-available sm:col-span-2">
             Listed {created.model}. It was placed at rack {created.rack_no}, slot {created.slot_no}.
             Add availability so renters can book it.
           </p>
         )}
       </form>
 
-      {actionError && <p className="mt-4 text-red-600">{actionError}</p>}
-      {error && <p className="mt-6 text-red-600">{error}</p>}
-      {loading && <p className="mt-6 text-gray-500">Loading...</p>}
+      {actionError && <p className="mt-4 text-danger">{actionError}</p>}
+      {error && <p className="mt-6 text-danger">{error}</p>}
+      {loading && <p className="mt-6 text-muted">Loading...</p>}
       {!loading && !error && gpus.length === 0 && (
-        <p className="mt-6 text-gray-500">You have not listed any GPUs yet.</p>
+        <p className="mt-6 text-muted">You have not listed any GPUs yet.</p>
       )}
 
       {!loading && gpus.length > 0 && (
@@ -205,37 +205,37 @@ export default function DashboardPage() {
           {gpus.map((gpu) => (
             <div
               key={gpu.id}
-              className={`rounded-lg border bg-white p-4 shadow-sm ${gpu.is_active ? '' : 'opacity-70'} ${
+              className={`rounded-lg border bg-surface p-4 ${gpu.is_active ? '' : 'opacity-70'} ${
                 openId === gpu.id ? 'sm:col-span-2 lg:col-span-3' : ''
               }`}
             >
               <div className="flex flex-wrap gap-2">
                 <span
                   className={`rounded px-2 py-0.5 text-xs ${
-                    gpu.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
+                    gpu.is_active ? 'bg-available/15 text-available' : 'bg-offline/20 text-muted'
                   }`}
                 >
                   {gpu.is_active ? 'Listed' : 'Switched off'}
                 </span>
                 {gpu.rented_now && (
-                  <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                  <span className="rounded bg-brand/15 px-2 py-0.5 text-xs text-brand">
                     Rented now
                   </span>
                 )}
               </div>
 
               <h3 className="mt-2 text-lg font-semibold">{gpu.model}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted">
                 {gpu.gpu_count} × {gpu.vram_gb} GB VRAM · {gpu.location}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted">
                 {gpu.rack_no !== null
                   ? `Rack ${gpu.rack_no}, slot ${gpu.slot_no}`
                   : 'No rack position'}
               </p>
-              <p className="mt-2 text-xl font-bold text-blue-600">
+              <p className="mt-2 text-xl font-bold text-brand">
                 ${gpu.price_per_hour}
-                <span className="text-sm font-normal text-gray-500"> / hour</span>
+                <span className="text-sm font-normal text-muted"> / hour</span>
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">

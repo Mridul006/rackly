@@ -17,7 +17,7 @@ export default function LoginPage() {
     setSubmitting(true)
     try {
       await login(email, password)
-      navigate('/')
+      navigate('/browse')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -45,18 +45,18 @@ export default function LoginPage() {
           required
           className="w-full rounded border p-2"
         />
-        {error && <p className="text-red-600">{error}</p>}
+        {error && <p className="text-danger">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded bg-blue-600 p-2 text-white disabled:opacity-50"
+          className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
         >
           {submitting ? 'Logging in...' : 'Log in'}
         </button>
       </form>
       <p className="mt-4 text-sm">
         No account?{' '}
-        <Link to="/signup" className="text-blue-600">
+        <Link to="/signup" className="text-brand">
           Sign up
         </Link>
       </p>
