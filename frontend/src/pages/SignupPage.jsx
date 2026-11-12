@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
+import AuthLayout from '../components/AuthLayout'
+import { buttonClass, inputClass, labelClass } from '../components/authStyles'
+
+const ROLES = [
+  { value: 'renter', label: 'Rent GPUs' },
+  { value: 'provider', label: 'List my GPUs' },
+]
 
 export default function SignupPage() {
   const { signup } = useAuth()
@@ -27,49 +34,74 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="mx-auto mt-20 max-w-sm p-6">
-      <h1 className="text-2xl font-bold">Create account</h1>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full rounded border p-2"
-        />
-        <input
-          type="password"
-          placeholder="Password (at least 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-          className="w-full rounded border p-2"
-        />
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full rounded border p-2"
-        >
-          <option value="renter">I want to rent GPUs</option>
-          <option value="provider">I want to list my GPUs</option>
-        </select>
-        {error && <p className="text-danger">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
-        >
+    <AuthLayout
+      eyebrow="Join the room"
+      title="Create account"
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link to="/login" className="text-brand">
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <label className="block">
+          <span className={labelClass}>Email</span>
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Password</span>
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            className={inputClass}
+          />
+          <span className="mt-1 block text-xs text-muted">At least 8 characters</span>
+        </label>
+
+        <div>
+          <span className={labelClass}>I want to</span>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {ROLES.map((r) => (
+              <button
+                type="button"
+                key={r.value}
+                onClick={() => setRole(r.value)}
+                aria-pressed={role === r.value}
+                className={`rounded-sm border px-3 py-2 text-left text-sm transition-colors ${
+                  role === r.value ? 'border-brand text-brand' : 'border-line text-muted hover:text-ink'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <p role="alert" className="text-danger">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={submitting} className={buttonClass}>
           {submitting ? 'Creating account...' : 'Sign up'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
-        Already have an account?{' '}
-        <Link to="/login" className="text-brand">
-          Log in
-        </Link>
-      </p>
-    </div>
+    </AuthLayout>
   )
 }

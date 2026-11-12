@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
+import AuthLayout from '../components/AuthLayout'
+import { buttonClass, inputClass, labelClass } from '../components/authStyles'
 
 export default function LoginPage() {
-  const { login, sessionExpired  } = useAuth()
+  const { login, sessionExpired } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -26,43 +28,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto mt-20 max-w-sm p-6">
-      <h1 className="text-2xl font-bold">Log in</h1>
-      {sessionExpired && (
-        <p className="mt-4 text-rented">Your session expired. Log in again.</p>
-      )}
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full rounded border p-2"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full rounded border p-2"
-        />
-        {error && <p className="text-danger">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded bg-brand p-2 text-page disabled:opacity-50"
-        >
+    <AuthLayout
+      eyebrow="Welcome back"
+      title="Log in"
+      notice={
+        sessionExpired && <p className="mt-4 text-rented">Your session expired. Log in again.</p>
+      }
+      footer={
+        <>
+          No account?{' '}
+          <Link to="/signup" className="text-brand">
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <label className="block">
+          <span className={labelClass}>Email</span>
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className={labelClass}>Password</span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </label>
+
+        {error && (
+          <p role="alert" className="text-danger">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={submitting} className={buttonClass}>
           {submitting ? 'Logging in...' : 'Log in'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
-        No account?{' '}
-        <Link to="/signup" className="text-brand">
-          Sign up
-        </Link>
-      </p>
-    </div>
+    </AuthLayout>
   )
 }

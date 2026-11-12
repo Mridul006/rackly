@@ -224,6 +224,21 @@ function ScrollCamera({ progress, frozen }) {
   return null
 }
 
+function CloseupCamera({ frozen }) {
+  const time = useRef(0)
+
+  useFrame((state, delta) => {
+    if (!frozen) time.current += delta
+    const t = time.current
+    const x = -1.5 + Math.sin(t * 0.09) * 2.6
+
+    state.camera.position.set(x, 1.45 + Math.sin(t * 0.17) * 0.05, 0.85)
+    state.camera.lookAt(x + 2.6, 1.25, -1.2)
+  })
+
+  return null
+}
+
 function SlotMarker({ bezel, color, opacity }) {
   if (!bezel) return null
   const [x, y, z] = bezel.position
@@ -370,6 +385,7 @@ export default function DatacenterScene({
       )}
       {mode === 'drift' && <CameraDrift />}
       {mode === 'scroll' && <ScrollCamera progress={progress} frozen={frozen} />}
+      {mode === 'closeup' && <CloseupCamera frozen={frozen} />}
     </Canvas>
   )
 }

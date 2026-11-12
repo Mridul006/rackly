@@ -89,15 +89,15 @@ export default function DatacenterPage() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-9rem)] w-full overflow-hidden border border-line bg-page">
-      <DatacenterScene
+      <div className="absolute inset-0 overflow-hidden bg-page">
+        <DatacenterScene
         gpus={gpus}
         mode={orbit ? 'orbit' : 'drift'}
         selectedId={selectedId}
         onSelect={setSelectedId}
       />
-
-      <div className="absolute left-4 top-4 space-y-3 font-mono text-xs uppercase tracking-widest">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgb(5_5_5/0.6)_100%)]" />
+      <div className="absolute left-4 top-4 space-y-3 bg-page/70 p-3 font-mono text-xs uppercase tracking-widest">
         <p className="text-muted">Datacenter · {useSample ? 'sample data' : 'live data'}</p>
         <div className="pointer-events-none space-y-1.5">
           {Object.entries(STATUS).map(([key, item]) => (
@@ -133,7 +133,7 @@ export default function DatacenterPage() {
       )}
 
       {selected && (
-        <aside className="absolute right-4 top-4 w-72 border border-line bg-surface/95 p-4">
+        <aside className="absolute inset-x-4 bottom-16 border border-line bg-surface/95 p-4 sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-4 sm:w-72">
           <div className="flex items-start justify-between gap-2">
             <span
               className={`rounded-sm px-2 py-0.5 font-mono text-xs uppercase tracking-wider ${STATUS[selected.status].badge}`}

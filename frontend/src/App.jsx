@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import FullLayout from './components/FullLayout'
 import GuestRoute from './components/GuestRoute'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -46,7 +47,6 @@ export default function App() {
       >
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/gpus/:gpuId" element={<GPUDetailPage />} />
-        <Route path="/datacenter" element={<DatacenterPage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route
           path="/bookings"
@@ -81,6 +81,16 @@ export default function App() {
           }
         />
         <Route path="*" element={<NotFoundPage />} />
+      </Route>
+
+      <Route
+        element={
+          <ProtectedRoute>
+            <FullLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/datacenter" element={<DatacenterPage />} />
       </Route>
     </Routes>
   )
