@@ -153,3 +153,15 @@ class EarningsOut(BaseModel):
     
 class GPUDashboardOut(GPUOut):
     rented_now: bool
+
+
+class DatacenterGPU(BaseModel):
+    id: int
+    model: str
+    vram_gb: int
+    gpu_count: int
+    price_per_hour: Decimal
+    location: str
+    rack_no: int
+    slot_no: int
+    status: Literal["available", "rented", "offline"]

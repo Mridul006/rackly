@@ -8,20 +8,34 @@ function seeded(seed) {
   }
 }
 
+const MODELS = [
+  { model: 'RTX 4090', vram: 24, price: 1.5 },
+  { model: 'A100', vram: 80, price: 8 },
+  { model: 'H100', vram: 80, price: 12 },
+  { model: 'RTX 3080', vram: 10, price: 0.9 },
+  { model: 'L40S', vram: 48, price: 3.2 },
+]
+const CITIES = ['Delhi', 'Mumbai', 'Pune', 'Bengaluru', 'Chennai']
+const COUNTS = [1, 2, 4, 8]
+
 function makeSample() {
   const random = seeded(7)
-  const models = ['RTX 4090', 'A100', 'H100', 'RTX 3080', 'L40S']
   const gpus = []
   let id = 1
 
-  for (let rack = 1; rack <=  48; rack++) {
+  for (let rack = 1; rack <= 48; rack++) {
     for (let slot = 1; slot <= 10; slot++) {
       if (random() > 0.78) continue
       const roll = random()
       const status = roll < 0.55 ? 'available' : roll < 0.85 ? 'rented' : 'offline'
+      const m = MODELS[Math.floor(random() * MODELS.length)]
       gpus.push({
         id: id++,
-        model: models[Math.floor(random() * models.length)],
+        model: m.model,
+        vram_gb: m.vram,
+        gpu_count: COUNTS[Math.floor(random() * COUNTS.length)],
+        price_per_hour: m.price.toFixed(2),
+        location: CITIES[Math.floor(random() * CITIES.length)],
         rack_no: rack,
         slot_no: slot,
         status,

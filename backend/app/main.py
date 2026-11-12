@@ -3,7 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .database import get_db
-from .routers import auth, users, gpus, bookings, wallet, providers
+from .routers import auth, users, gpus, bookings, wallet, providers, datacenter
 
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
@@ -23,6 +23,7 @@ app.include_router(gpus.router)
 app.include_router(bookings.router)
 app.include_router(wallet.router)
 app.include_router(providers.router)
+app.include_router(datacenter.router)
 
 @app.get("/")
 async def root():

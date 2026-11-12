@@ -6,7 +6,7 @@ export const BEZEL = { w: 0.86, h: 0.17, d: 0.05 }
 
 const SPACING = 1.25
 const AISLE = 2.4
-const MIN_BLOCKS = 25
+const MIN_BLOCKS = 9
 const ROW_OFFSET = AISLE / 2 + RACK.d / 2
 
 export const ROW_LENGTH = RACKS_PER_ROW * SPACING
@@ -100,9 +100,12 @@ export function buildLayout(gpus) {
     for (let s = 1; s <= SLOTS_PER_RACK; s++) {
       const y = slotY(s)
       const key = `${n}-${s}`
+      const gpu = byPosition.get(key)
 
       bezels.push({
         key,
+        gpuId: gpu ? gpu.id : null,
+        dir: p.dir,
         position: [p.x, y, p.frontZ - p.dir * 0.03],
         rotationY: p.dir === 1 ? 0 : Math.PI,
       })
@@ -114,7 +117,6 @@ export function buildLayout(gpus) {
         })
       }
 
-      const gpu = byPosition.get(key)
       let status = 'empty'
       if (gpu) status = gpu.status
       else if (slotNoise(n, s) < 0.5) status = 'idle'

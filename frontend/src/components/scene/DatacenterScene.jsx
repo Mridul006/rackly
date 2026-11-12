@@ -1,9 +1,11 @@
-import { useMemo, useRef } from 'react'
-import { CanvasTexture, MathUtils, SRGBColorSpace } from 'three'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { CanvasTexture, MathUtils, SRGBColorSpace, Vector3 } from 'three'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Grid, Instance, Instances, Lightformer, OrbitControls } from '@react-three/drei'
 import { BEZEL, buildLayout, ROW_LENGTH } from '../../scene/layout'
-import { statusColors } from '../../theme'
+import { statusColors, themeColor } from '../../theme'
+
+const DEFAULT_DPR = [1, 2]
 
 function makeBezelTextures() {
   const W = 1024
@@ -62,8 +64,9 @@ function MetalParts({ parts, color = '#111113' }) {
   )
 }
 
-function Bezels({ bezels }) {
+const Bezels = memo(function Bezels({ bezels, onSelect, onHover }) {
   const textures = useMemo(() => makeBezelTextures(), [])
+
   return (
     <Instances limit={Math.max(bezels.length, 1)} frustumCulled={false}>
       <boxGeometry args={[BEZEL.w, BEZEL.h, BEZEL.d]} />
@@ -75,12 +78,36 @@ function Bezels({ bezels }) {
         metalness={0.55}
         roughness={0.5}
       />
-      {bezels.map((b) => (
-        <Instance key={b.key} position={b.position} rotation={[0, b.rotationY, 0]} />
-      ))}
+      {bezels.map((b) => {
+        const pickable = Boolean(onSelect) && b.gpuId !== null
+        return (
+          <Instance
+            key={b.key}
+            position={b.position}
+            rotation={[0, b.rotationY, 0]}
+            onClick={
+              pickable
+                ? (e) => {
+                    e.stopPropagation()
+                    onSelect(b.gpuId)
+                  }
+                : undefined
+            }
+            onPointerOver={
+              pickable
+                ? (e) => {
+                    e.stopPropagation()
+                    onHover(b.gpuId)
+                  }
+                : undefined
+            }
+            onPointerOut={pickable ? () => onHover(null) : undefined}
+          />
+        )
+      })}
     </Instances>
   )
-}
+})
 
 function Handles({ handles }) {
   return (
@@ -197,9 +224,91 @@ function ScrollCamera({ progress, frozen }) {
   return null
 }
 
-export default function DatacenterScene({ gpus, mode = 'drift', progress, frozen = false, dpr = [1, 2] }) {
+function SlotMarker({ bezel, color, opacity }) {
+  if (!bezel) return null
+  const [x, y, z] = bezel.position
+
+  return (
+    <mesh position={[x, y, z + bezel.dir * 0.045]}>
+      <boxGeometry args={[BEZEL.w + 0.1, BEZEL.h + 0.08, 0.02]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  )
+}
+
+function FocusRig({ focus }) {
+  const controls = useThree((state) => state.controls)
+  const camera = useThree((state) => state.camera)
+  const goal = useRef(null)
+
+  useEffect(() => {
+    goal.current = focus
+      ? { target: new Vector3(...focus.target), camera: new Vector3(...focus.camera) }
+      : null
+  }, [focus])
+
+  useFrame(() => {
+    const g = goal.current
+    if (!controls || !g) return
+
+    controls.target.lerp(g.target, 0.07)
+    camera.position.lerp(g.camera, 0.07)
+    controls.update()
+
+    if (controls.target.distanceTo(g.target) < 0.02 && camera.position.distanceTo(g.camera) < 0.02) {
+      goal.current = null
+    }
+  })
+
+  return null
+}
+
+export default function DatacenterScene({
+  gpus,
+  mode = 'drift',
+  progress,
+  frozen = false,
+  dpr = DEFAULT_DPR,
+  selectedId = null,
+  onSelect,
+}) {
   const layout = useMemo(() => buildLayout(gpus), [gpus])
   const colors = useMemo(() => statusColors(), [])
+  const brand = useMemo(() => themeColor('brand'), [])
+  const [hoveredId, setHoveredId] = useState(null)
+
+  const bezelByGpu = useMemo(() => {
+    const map = new Map()
+    layout.bezels.forEach((b) => {
+      if (b.gpuId !== null) map.set(b.gpuId, b)
+    })
+    return map
+  }, [layout])
+
+  const selectedBezel = selectedId !== null ? bezelByGpu.get(selectedId) : null
+  const hoveredBezel =
+    hoveredId !== null && hoveredId !== selectedId ? bezelByGpu.get(hoveredId) : null
+
+  const focus = useMemo(() => {
+    if (!selectedBezel) return null
+    const [x, y, z] = selectedBezel.position
+    return { target: [x, y, z], camera: [x, y + 0.25, z + selectedBezel.dir * 3.2] }
+  }, [selectedBezel])
+
+  useEffect(() => {
+    document.body.style.cursor = hoveredId !== null ? 'pointer' : 'auto'
+    return () => {
+      document.body.style.cursor = 'auto'
+    }
+  }, [hoveredId])
+
+  const pickable = mode === 'orbit' && Boolean(onSelect)
 
   return (
     <Canvas camera={{ position: [-12, 1.7, 0], fov: 50 }} dpr={dpr}>
@@ -233,20 +342,31 @@ export default function DatacenterScene({ gpus, mode = 'drift', progress, frozen
       <Room />
       <MetalParts parts={layout.frames} />
       <MetalParts parts={layout.trays} color="#161618" />
-      <Bezels bezels={layout.bezels} />
+      <Bezels
+        bezels={layout.bezels}
+        onSelect={pickable ? onSelect : undefined}
+        onHover={setHoveredId}
+      />
       <Handles handles={layout.handles} />
       <Leds leds={layout.leds} colors={colors} />
       <CeilingLights lights={layout.lights} />
 
+      <SlotMarker bezel={hoveredBezel} color="#e8e8ea" opacity={0.18} />
+      <SlotMarker bezel={selectedBezel} color={brand} opacity={0.35} />
+
       {mode === 'orbit' && (
-        <OrbitControls
-          target={[0, 1.2, 0]}
-          enablePan
-          screenSpacePanning={false}
-          minDistance={3}
-          maxDistance={40}
-          maxPolarAngle={Math.PI / 2.05}
-        />
+        <>
+          <OrbitControls
+            makeDefault
+            target={[0, 1.2, 0]}
+            enablePan
+            screenSpacePanning={false}
+            minDistance={3}
+            maxDistance={40}
+            maxPolarAngle={Math.PI / 2.05}
+          />
+          <FocusRig focus={focus} />
+        </>
       )}
       {mode === 'drift' && <CameraDrift />}
       {mode === 'scroll' && <ScrollCamera progress={progress} frozen={frozen} />}
