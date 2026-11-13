@@ -28,6 +28,29 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key !== null && e.key !== 'token') return
+
+      if (!e.newValue) {
+        setUser(null)
+        setLoggedOut(true)
+        setSessionExpired(false)
+      } else if (e.oldValue && e.oldValue !== e.newValue) {
+        window.location.reload()
+      } else {
+        setLoggedOut(false)
+        setSessionExpired(false)
+        api('/users/me')
+          .then(setUser)
+          .catch(() => {})
+      }
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   async function login(email, password) {
     const data = await api('/auth/login', {
       method: 'POST',
