@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import { formatSigned, formatTime } from '../format'
+import { useRefetchOnLive } from '../hooks/useRefetchOnLive'
 
 const PAGE_SIZE = 10
 
@@ -26,12 +27,14 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const reload = useCallback(() => setReloadKey((key) => key + 1), [])
+  useRefetchOnLive(reload)
 
   const [amount, setAmount] = useState('')
   const [depositError, setDepositError] = useState('')
   const [notice, setNotice] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
+  
   useEffect(() => {
     let ignore = false
     setLoading(true)
@@ -121,12 +124,12 @@ export default function WalletPage() {
 
       <h2 className="mt-8 text-lg font-semibold">History</h2>
 
-      {loading && <p className="mt-4 text-muted">Loading...</p>}
+      {loading && transactions.length === 0 && <p className="mt-4 text-muted">Loading...</p>}
       {!loading && !error && transactions.length === 0 && (
         <p className="mt-4 text-muted">No transactions yet.</p>
       )}
 
-      {!loading && transactions.length > 0 && (
+      {transactions.length > 0 && (
         <div className="mt-4 overflow-x-auto rounded-lg border bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b bg-raised text-muted">

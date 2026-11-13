@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
 import { bookingState, formatTime, STATE_BADGE } from '../format'
+import { useRefetchOnLive } from '../hooks/useRefetchOnLive'
 
 const PAGE_SIZE = 10
 const TABS = [
@@ -18,6 +19,9 @@ export default function ProviderBookingsPage() {
   const [hasNext, setHasNext] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = useCallback(() => setReloadKey((key) => key + 1), [])
+  useRefetchOnLive(reload)
 
   
   useEffect(() => {
@@ -46,8 +50,8 @@ export default function ProviderBookingsPage() {
     return () => {
       ignore = true
     }
-  }, [when, offset])
-
+   }, [when, offset, reloadKey])
+   
   function changeTab(value) {
     setWhen(value)
     setOffset(0)
@@ -72,12 +76,12 @@ export default function ProviderBookingsPage() {
       </div>
 
       {error && <p className="mt-6 text-danger">{error}</p>}
-      {loading && <p className="mt-6 text-muted">Loading...</p>}
+      {loading && bookings.length === 0 && <p className="mt-6 text-muted">Loading...</p>}      
       {!loading && !error && bookings.length === 0 && (
         <p className="mt-6 text-muted">No rentals here yet.</p>
       )}
 
-      {!loading && bookings.length > 0 && (
+      {bookings.length > 0 && (
         <div className="mt-6 overflow-x-auto rounded-lg border bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b bg-raised text-muted">

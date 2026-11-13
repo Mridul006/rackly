@@ -195,12 +195,12 @@ export default function DashboardPage() {
 
       {actionError && <p className="mt-4 text-danger">{actionError}</p>}
       {error && <p className="mt-6 text-danger">{error}</p>}
-      {loading && <p className="mt-6 text-muted">Loading...</p>}
+      {loading && gpus.length === 0 && <p className="mt-6 text-muted">Loading...</p>}      
       {!loading && !error && gpus.length === 0 && (
         <p className="mt-6 text-muted">You have not listed any GPUs yet.</p>
       )}
 
-      {!loading && gpus.length > 0 && (
+      {gpus.length > 0 && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {gpus.map((gpu) => (
             <div

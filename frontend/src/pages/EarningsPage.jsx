@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
+import { useRefetchOnLive } from '../hooks/useRefetchOnLive'
 
 export default function EarningsPage() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
+  const reload = useCallback(() => setReloadKey((key) => key + 1), [])
+  useRefetchOnLive(reload)
 
   useEffect(() => {
     let ignore = false
-
+    setError('')
+    
     api('/providers/me/earnings')
       .then((result) => {
         if (!ignore) setData(result)
@@ -23,7 +28,7 @@ export default function EarningsPage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [reloadKey])
 
   return (
     <div>

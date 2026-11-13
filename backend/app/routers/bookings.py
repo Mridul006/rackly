@@ -1,5 +1,5 @@
 #this file contains the routers for the bookings endpoints done by renters for the gpus available on the platform
-
+from ..events import notify_datacenter
 from datetime import datetime, timezone
 from typing import Literal
 
@@ -112,6 +112,7 @@ def create_booking(
     )
     db.commit()
     db.refresh(booking)
+    notify_datacenter(booking.gpu_id, "booking_created")
     return booking
 
 
@@ -200,4 +201,5 @@ def cancel_booking(
     )
     db.commit()
     db.refresh(booking)
+    notify_datacenter(booking.gpu_id, "booking_cancelled")
     return booking

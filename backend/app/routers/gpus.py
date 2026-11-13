@@ -1,5 +1,5 @@
 # this file contains the routers for the gpus endpoints
-
+from ..events import notify_datacenter
 from datetime import datetime, timezone
 from decimal import Decimal
 from ..config import settings
@@ -93,6 +93,7 @@ def create_gpu(
                 )
             continue  
         db.refresh(gpu)
+        notify_datacenter(gpu.id, "gpu_listed")
         return gpu
 
     raise HTTPException(
@@ -174,6 +175,7 @@ def update_gpu(gpu_id: int,gpu_in: GPUUpdate,db: Session = Depends(get_db),curre
             detail="That rack and slot is already taken",
         )
     db.refresh(gpu)
+    notify_datacenter(gpu.id, "gpu_listed")
     return gpu
 
 
@@ -215,6 +217,7 @@ def create_availability(
     db.add(window)
     db.commit()
     db.refresh(window)
+    notify_datacenter(gpu.id, "gpu_listed")
     return window
 
 
@@ -250,4 +253,5 @@ def delete_availability(
 
     db.delete(window)
     db.commit()
+    notify_datacenter(gpu.id, "gpu_listed")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

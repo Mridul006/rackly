@@ -257,6 +257,33 @@ function SlotMarker({ bezel, color, opacity }) {
   )
 }
 
+function PulseMarker({ bezel, color }) {
+  const material = useRef()
+  const time = useRef(0)
+
+  useFrame((state, delta) => {
+    time.current += delta
+    if (material.current) material.current.opacity = 0.3 + 0.25 * Math.sin(time.current * 9)
+  })
+
+  if (!bezel) return null
+  const [x, y, z] = bezel.position
+
+  return (
+    <mesh position={[x, y, z + bezel.dir * 0.05]}>
+      <boxGeometry args={[BEZEL.w + 0.16, BEZEL.h + 0.12, 0.02]} />
+      <meshBasicMaterial
+        ref={material}
+        color={color}
+        transparent
+        opacity={0.4}
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  )
+}
+
 function FocusRig({ focus }) {
   const controls = useThree((state) => state.controls)
   const camera = useThree((state) => state.camera)
@@ -291,6 +318,7 @@ export default function DatacenterScene({
   frozen = false,
   dpr = DEFAULT_DPR,
   selectedId = null,
+  pulseId = null,
   onSelect,
 }) {
   const layout = useMemo(() => buildLayout(gpus), [gpus])
@@ -309,6 +337,8 @@ export default function DatacenterScene({
   const selectedBezel = selectedId !== null ? bezelByGpu.get(selectedId) : null
   const hoveredBezel =
     hoveredId !== null && hoveredId !== selectedId ? bezelByGpu.get(hoveredId) : null
+  const pulseBezel =
+    pulseId !== null && pulseId !== selectedId ? bezelByGpu.get(pulseId) : null
 
   const focus = useMemo(() => {
     if (!selectedBezel) return null
@@ -368,6 +398,7 @@ export default function DatacenterScene({
 
       <SlotMarker bezel={hoveredBezel} color="#e8e8ea" opacity={0.18} />
       <SlotMarker bezel={selectedBezel} color={brand} opacity={0.35} />
+      <PulseMarker bezel={pulseBezel} color={brand} />
 
       {mode === 'orbit' && (
         <>

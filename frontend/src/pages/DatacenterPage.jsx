@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import DatacenterScene from '../components/scene/DatacenterScene'
+import { useLiveUpdates } from '../hooks/useLiveUpdates'
 import { SAMPLE_GPUS } from '../scene/sampleData'
+import { useRefetchOnLive } from '../hooks/useRefetchOnLive'
 
 const STATUS = {
   available: {
@@ -35,9 +37,15 @@ export default function DatacenterPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const reload = useCallback(() => setReloadKey((key) => key + 1), [])
+  useRefetchOnLive(reload)
   const [useSample, setUseSample] = useState(false)
   const [orbit, setOrbit] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
+  const [pulseId, setPulseId] = useState(null)
+
+  const refetchTimer = useRef(null)
+  const pulseTimer = useRef(null)
 
   useEffect(() => {
     let ignore = false
@@ -60,6 +68,32 @@ export default function DatacenterPage() {
     }
   }, [reloadKey])
 
+  const handleEvent = useCallback(
+    (event) => {
+      console.log('live event', event)
+      if (useSample) return
+
+      clearTimeout(refetchTimer.current)
+      refetchTimer.current = setTimeout(() => setReloadKey((key) => key + 1), 250)
+
+      if (event.gpu_id) {
+        setPulseId(event.gpu_id)
+        clearTimeout(pulseTimer.current)
+        pulseTimer.current = setTimeout(() => setPulseId(null), 3000)
+      }
+    },
+    [useSample],
+  )
+  const connected = useLiveUpdates(handleEvent)
+
+  useEffect(
+    () => () => {
+      clearTimeout(refetchTimer.current)
+      clearTimeout(pulseTimer.current)
+    },
+    [],
+  )
+
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') setSelectedId(null)
@@ -81,6 +115,7 @@ export default function DatacenterPage() {
   function toggleSample() {
     setUseSample((value) => !value)
     setSelectedId(null)
+    setPulseId(null)
   }
 
   function toggleOrbit() {
@@ -89,14 +124,17 @@ export default function DatacenterPage() {
   }
 
   return (
-      <div className="absolute inset-0 overflow-hidden bg-page">
-        <DatacenterScene
+    <div className="absolute inset-0 overflow-hidden bg-page">
+      <DatacenterScene
         gpus={gpus}
         mode={orbit ? 'orbit' : 'drift'}
         selectedId={selectedId}
         onSelect={setSelectedId}
+        pulseId={pulseId}
       />
+
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgb(5_5_5/0.6)_100%)]" />
+
       <div className="absolute left-4 top-4 space-y-3 bg-page/70 p-3 font-mono text-xs uppercase tracking-widest">
         <p className="text-muted">Datacenter · {useSample ? 'sample data' : 'live data'}</p>
         <div className="pointer-events-none space-y-1.5">
@@ -106,6 +144,12 @@ export default function DatacenterPage() {
               {item.label} <span className="text-muted">{counts[key]}</span>
             </p>
           ))}
+          {!useSample && (
+            <p className="flex items-center gap-2 pt-1 text-muted">
+              <i className={`h-2 w-2 rounded-full ${connected ? 'bg-available' : 'bg-rented'}`} />
+              {connected ? 'Live updates on' : 'Reconnecting'}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={toggleSample} className={smallBtn}>
@@ -117,7 +161,7 @@ export default function DatacenterPage() {
             </button>
           )}
         </div>
-        {loading && !useSample && <p className="text-muted">Loading...</p>}
+        {loading && live.length === 0 && !useSample && <p className="text-muted">Loading...</p>}
         {error && <p className="normal-case tracking-normal text-danger">{error}</p>}
         {!loading && !error && !useSample && live.length === 0 && (
           <p className="max-w-56 normal-case tracking-normal text-muted">

@@ -97,7 +97,7 @@ export default function BrowsePage() {
       </form>
 
       {error && <p className="mt-6 text-danger">{error}</p>}
-      {loading && <p className="mt-6 text-muted">Loading...</p>}
+      {loading && <p className="mt-6 text-muted">Loading...</p>}      
       {!loading && !error && gpus.length === 0 && (
         <p className="mt-6 text-muted">No GPUs match your filters.</p>
       )}

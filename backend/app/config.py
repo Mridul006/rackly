@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
     cors_origins: str = "http://localhost:5173"
     slots_per_rack: int = 10
+    redis_url: str = "redis://localhost:6379/0"
     
     model_config = SettingsConfigDict(env_file=".env")
         
