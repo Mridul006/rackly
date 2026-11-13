@@ -337,8 +337,7 @@ export default function DatacenterScene({
   const selectedBezel = selectedId !== null ? bezelByGpu.get(selectedId) : null
   const hoveredBezel =
     hoveredId !== null && hoveredId !== selectedId ? bezelByGpu.get(hoveredId) : null
-  const pulseBezel =
-    pulseId !== null && pulseId !== selectedId ? bezelByGpu.get(pulseId) : null
+  const pulseBezel = pulseId !== null ? bezelByGpu.get(pulseId) : null
 
   const focus = useMemo(() => {
     if (!selectedBezel) return null

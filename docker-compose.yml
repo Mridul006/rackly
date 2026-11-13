@@ -1,3 +1,20 @@
+x-backend: &backend
+  image: rackly-backend
+  build: ./backend
+  env_file: ./backend/.env
+  environment:
+    DATABASE_HOSTNAME: db
+    DATABASE_PORT: "5432"
+    DATABASE_USERNAME: ${POSTGRES_USER}
+    DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    DATABASE_NAME: ${POSTGRES_DB}
+    REDIS_URL: redis://redis:6379/0
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
 services:
   db:
     image: postgres:17
@@ -24,22 +41,14 @@ services:
       retries: 10
 
   api:
-    build: ./backend
-    env_file: ./backend/.env
-    environment:
-      DATABASE_HOSTNAME: db
-      DATABASE_PORT: "5432"
-      DATABASE_USERNAME: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_NAME: ${POSTGRES_DB}
-      REDIS_URL: redis://redis:6379/0
+    <<: *backend
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "app.worker"]
+    restart: unless-stopped
 
 volumes:
   pgdata:

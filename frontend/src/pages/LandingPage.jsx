@@ -208,7 +208,7 @@ export default function LandingPage() {
 
         <footer className="border-t border-line bg-page">
           <div className="mx-auto grid max-w-7xl gap-8 px-8 py-10 text-sm text-muted md:grid-cols-3">
-            <p>Rackly is a portfolio project. Payments are simulated and no real money moves.</p>
+            <p>Payments are simulated and no real money moves.</p>
             <div className="flex flex-col gap-2">
               <a href={REPO_URL} target="_blank" rel="noreferrer" className={navLink}>
                 Source on GitHub ↗
@@ -217,7 +217,6 @@ export default function LandingPage() {
                 API documentation ↗
               </a>
             </div>
-            <p>3D model credits will appear here.</p>
           </div>
         </footer>
       </div>

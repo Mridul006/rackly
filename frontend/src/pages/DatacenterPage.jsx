@@ -28,6 +28,16 @@ const STATUS = {
   },
 }
 
+const EVENT_LABELS = {
+  booking_created: 'Booking created',
+  booking_cancelled: 'Booking cancelled',
+  booking_started: 'Rental started',
+  booking_ended: 'Rental ended',
+  gpu_listed: 'GPU listed',
+  gpu_updated: 'GPU updated',
+  availability_changed: 'Availability changed',
+}
+
 const smallBtn =
   'border border-line bg-surface/80 px-3 py-1.5 text-ink hover:border-brand hover:text-brand'
 
@@ -46,6 +56,9 @@ export default function DatacenterPage() {
 
   const refetchTimer = useRef(null)
   const pulseTimer = useRef(null)
+  
+  const [lastEvent, setLastEvent] = useState(null)
+  const feedTimer = useRef(null)
 
   useEffect(() => {
     let ignore = false
@@ -70,8 +83,10 @@ export default function DatacenterPage() {
 
   const handleEvent = useCallback(
     (event) => {
-      console.log('live event', event)
       if (useSample) return
+      setLastEvent(event)
+      clearTimeout(feedTimer.current)
+      feedTimer.current = setTimeout(() => setLastEvent(null), 8000)
 
       clearTimeout(refetchTimer.current)
       refetchTimer.current = setTimeout(() => setReloadKey((key) => key + 1), 250)
@@ -90,6 +105,7 @@ export default function DatacenterPage() {
     () => () => {
       clearTimeout(refetchTimer.current)
       clearTimeout(pulseTimer.current)
+      clearTimeout(feedTimer.current)
     },
     [],
   )
@@ -103,6 +119,7 @@ export default function DatacenterPage() {
   }, [])
 
   const gpus = useSample ? SAMPLE_GPUS : live
+  const eventGpu = lastEvent ? gpus.find((g) => g.id === lastEvent.gpu_id) : null
   const selected = useMemo(() => gpus.find((g) => g.id === selectedId) ?? null, [gpus, selectedId])
   const counts = useMemo(() => {
     const c = { available: 0, rented: 0, offline: 0 }
@@ -149,6 +166,15 @@ export default function DatacenterPage() {
               <i className={`h-2 w-2 rounded-full ${connected ? 'bg-available' : 'bg-rented'}`} />
               {connected ? 'Live updates on' : 'Reconnecting'}
             </p>
+          )}
+          {lastEvent && lastEvent.reason && (
+            <button
+              onClick={() => lastEvent.gpu_id && setSelectedId(lastEvent.gpu_id)}
+              className="pointer-events-auto block pt-1 text-left normal-case tracking-normal text-available hover:underline"
+            >
+              {EVENT_LABELS[lastEvent.reason] ?? lastEvent.reason}
+              {eventGpu ? `: ${eventGpu.model}, rack ${eventGpu.rack_no}, slot ${eventGpu.slot_no}` : ''}
+            </button>
           )}
         </div>
         <div className="flex flex-wrap gap-2">

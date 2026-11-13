@@ -138,7 +138,7 @@ def list_my_bookings(
         elif when == "past":
             query = query.where(Booking.end_at <= now)
 
-    query = query.order_by(Booking.start_at.desc(), Booking.id.desc()).limit(limit).offset(offset)
+    query = query.order_by(Booking.id.desc()).limit(limit).offset(offset)
     return db.scalars(query).all()
 
 
