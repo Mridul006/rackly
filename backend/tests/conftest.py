@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 
 # Point the app at the TEST database *before* anything imports app.config.
 os.environ["DATABASE_NAME"] = os.environ.get("TEST_DATABASE_NAME", "rackly_test")
@@ -268,3 +271,35 @@ def scene(signup, make_gpu, add_window, deposit, now):
     assert add_window(provider, gpu, now, now + timedelta(days=5)).status_code == 201
     deposit(renter, "100.00")
     return SimpleNamespace(provider=provider, renter=renter, gpu=gpu)
+
+@pytest.fixture
+def race():
+    def run(requests):
+        barrier = threading.Barrier(len(requests))
+
+        def worker(spec):
+            method, url, kwargs = spec
+            thread_client = TestClient(app)
+            barrier.wait(timeout=15)
+            return thread_client.request(method, url, **kwargs)
+
+        with ThreadPoolExecutor(max_workers=len(requests)) as pool:
+            futures = [pool.submit(worker, spec) for spec in requests]
+            return [future.result() for future in futures]
+
+    return run
+
+
+@pytest.fixture
+def ledger_balances(fetch):
+    def check(deposited):
+        total = fetch("SELECT COALESCE(SUM(amount), 0) FROM wallet_transactions")[0][0]
+        assert total == Decimal(deposited), f"ledger sums to {total}, expected {deposited}"
+
+        unbalanced = fetch(
+            "SELECT booking_id, SUM(amount) FROM wallet_transactions "
+            "WHERE booking_id IS NOT NULL GROUP BY booking_id HAVING SUM(amount) <> 0"
+        )
+        assert unbalanced == [], f"bookings whose rows do not net to zero: {unbalanced}"
+
+    return check
