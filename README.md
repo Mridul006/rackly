@@ -6,9 +6,27 @@
 
 > Portfolio project. Payments are **simulated**: no real money moves.
 
-<!-- TODO (Phase 9): add a screenshot or demo GIF of the datacenter here, for example docs/screenshots/datacenter.png -->
+![Rackly datacenter](docs/screenshots/datacenter.png)
+![Rackly datacenter-live](docs/screenshots/datacenter-live.png)
 
-**Status:** the backend, frontend, 3D room, live updates and automated tests are done. Deployment is next, so there is no live demo link yet.
+## Live demo
+
+**https://rackly-nine.vercel.app**
+
+Log in with a demo account (the password is the same for all four):
+
+| Account | Role |
+|---|---|
+| `demo.renter1@rackly.dev` | renter |
+| `demo.renter2@rackly.dev` | renter |
+| `demo.provider1@rackly.dev` | provider |
+| `demo.provider2@rackly.dev` | provider |
+
+Password: `demo-password-123`
+
+> The API runs on a free tier that goes to sleep when idle, so the very first request after a quiet period can take up to a minute. Payments are simulated.
+
+**Status:** backend, frontend, 3D room, live updates, automated tests and deployment are done.
 
 ## Highlights
 
@@ -17,7 +35,7 @@
 - **A live 3D datacenter.** About 1,400 server units are drawn with instanced meshes, with an LED on every slot showing real GPU status (available, rented, offline). Click a slot to open its details and book it.
 - **Real-time everywhere.** A booking in one browser tab updates every other open page within about a second. Redis pub/sub carries the events, and WebSockets deliver them to the browser.
 - **Bookings move through their life on their own.** A background worker marks bookings `active` when they start and `completed` when they end, and the LED flips with nobody clicking anything.
-- **Tested.** 60+ pytest tests run against a real PostgreSQL database built from the real migrations, and GitHub Actions runs them on every push.
+- **Tested.** 64 pytest tests run against a real PostgreSQL database built from the real migrations, and GitHub Actions runs them on every push.
 
 ## How it works
 
@@ -37,6 +55,7 @@ Both can explore the datacenter. Only renters can deposit and book, and only pro
 | Frontend | React 19, Vite, Tailwind CSS 4, React Router 7, JavaScript |
 | 3D | three.js through React Three Fiber and drei, with instanced meshes |
 | Testing and CI | pytest, GitHub Actions (with a Postgres service container) |
+| Hosting | Vercel (frontend), Render (API and Redis), Neon (PostgreSQL) |
 | Tooling | Docker and Docker Compose |
 
 ## Architecture
@@ -144,6 +163,8 @@ After changing Python code, rebuild the images with `docker compose up -d --buil
 | `CORS_ORIGINS` | Comma-separated allowed browser origins. Also used to check WebSocket origins | `http://localhost:5173` |
 | `REDIS_URL` | Redis address. Compose sets it for containers | `redis://localhost:6379/0` |
 | `SLOTS_PER_RACK` | Server slots in each rack | `10` |
+| `RUN_WORKER_IN_API` | Run the booking worker inside the API process (used on the free hosting tier; locally it is a separate service) | `false` |
+| `PGSSLMODE` | Set to `require` when the database needs SSL (for example Neon) | unset |
 
 **`frontend/.env`**:
 
@@ -152,6 +173,18 @@ After changing Python code, rebuild the images with `docker compose up -d --buil
 | `VITE_API_URL` | Base URL of the API, for example `http://localhost:8000` |
 
 Real `.env` files are git-ignored. Never commit them.
+
+## Deployment
+
+| Part | Where | Notes |
+|---|---|---|
+| Frontend | Vercel | Root directory `frontend`, env var `VITE_API_URL`, `vercel.json` rewrites every path to `index.html` so deep links work |
+| API | Render (Docker, free instance) | The container runs `alembic upgrade head` and then starts uvicorn on Render's `$PORT` |
+| Worker | Inside the API process | `RUN_WORKER_IN_API=true` starts the worker loop on a background thread, because the free tier has no always-on worker service |
+| Database | Neon (PostgreSQL) | Direct (non-pooled) host, `PGSSLMODE=require` |
+| Redis | Render Key Value | Only carries live-update messages, so losing its data on a restart is harmless |
+
+Things to set on the API: the database variables, `REDIS_URL`, a new random `SECRET_KEY`, and `CORS_ORIGINS` set to the exact frontend URL (it also decides which origins may open the WebSocket). On a paid plan the worker would run as its own service with `python -m app.worker`, exactly as in Docker Compose.
 
 ## Running the tests
 
@@ -183,7 +216,7 @@ What is covered:
 
 ## Continuous integration
 
-`.github/workflows/tests.yml` runs on every push to `main` and on pull requests:
+`.github/workflows/test.yml` runs on every push to `main` and on pull requests:
 
 - **backend:** starts a PostgreSQL service container, installs `requirements-dev.txt`, and runs `pytest`.
 - **frontend:** runs `npm ci` and `npm run build`.
@@ -222,7 +255,7 @@ rackly/
 │                              wallet, datacenter, provider dashboard, rentals, earnings
 ├── docs/                      user stories, data model, ER diagram, API list
 ├── docker-compose.yml
-└── .github/workflows/tests.yml
+└── .github/workflows/test.yml
 ```
 
 ## API overview
@@ -279,14 +312,13 @@ The rows for one booking always net to zero.
 - A booking must fit entirely inside one availability window.
 - No rate limiting on login, no password reset, and no email verification yet.
 - Login tokens live in `localStorage`, and there are no refresh tokens.
+- On the free hosting tier the API sleeps when idle (the first request can take about a minute) and the worker only runs while the API is awake. A paid tier or a separate worker service removes both limits.
 - Each WebSocket connection holds its own Redis subscription. That is fine at this scale, but a larger deployment would share one subscription per process and fan out in memory.
 - Providers can request a specific rack and slot through the API. By default the platform assigns them.
 - The 3D room is built procedurally from simple geometry and textures drawn in code, so it uses no external 3D models.
 
 ## Roadmap
 
-- Deployment: frontend on Vercel, API and worker as containers, with managed PostgreSQL and Redis
-- Provider agent (mock mode) reporting GPU utilisation heartbeats to the room
 - Login rate limiting with Redis counters
 - Problem reports and an admin view
 - A visual availability calendar
@@ -306,4 +338,9 @@ The `docs/` folder has the [user stories](docs/user-stories.md), the [data model
 | Live updates say "Reconnecting" | Open the app at `http://localhost:5173`, not `127.0.0.1`, and make sure `CORS_ORIGINS` contains the exact origin you use |
 | Python changes have no effect | Rebuild: `docker compose up -d --build` |
 | `pytest` cannot reach the database | Start it with `docker compose up -d db` |
+| The deployed site shows CORS errors | `CORS_ORIGINS` on the API must exactly match the frontend URL (no trailing slash), then redeploy the API |
+| A command fails with `could not translate host name` for the database | Your network's DNS is refusing the lookup. Switch DNS (for example `1.1.1.1`) or use another network |
 
+## About
+
+Built by [Mridul](https://github.com/Mridul006) . Live at https://rackly-nine.vercel.app.
