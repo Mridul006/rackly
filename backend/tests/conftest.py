@@ -3,6 +3,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 # Point the app at the TEST database *before* anything imports app.config.
 os.environ["DATABASE_NAME"] = os.environ.get("TEST_DATABASE_NAME", "rackly_test")
@@ -152,3 +153,37 @@ def signup(client):
         )
 
     return make
+
+@pytest.fixture
+def make_gpu(client):
+    def make(provider, **overrides):
+        body = {
+            "model": "RTX 4090",
+            "vram_gb": 24,
+            "gpu_count": 1,
+            "price_per_hour": "1.50",
+            "location": "Delhi",
+        }
+        body.update(overrides)
+        response = client.post("/gpus", json=body, headers=provider.headers)
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    return make
+
+
+@pytest.fixture
+def add_window(client):
+    def add(provider, gpu, start, end):
+        return client.post(
+            f"/gpus/{gpu['id']}/availability",
+            json={"start_at": start.isoformat(), "end_at": end.isoformat()},
+            headers=provider.headers,
+        )
+
+    return add
+
+
+@pytest.fixture
+def now():
+    return datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
