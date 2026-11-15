@@ -1,6 +1,6 @@
 # Rackly
 
-![tests](https://github.com/Mridul006/rackly/actions/workflows/tests.yml/badge.svg)
+[![tests](https://github.com/Mridul006/rackly/actions/workflows/test.yml/badge.svg)](https://github.com/Mridul006/rackly/actions/workflows/test.yml)
 
 **Rent GPUs by the hour.** Rackly is a marketplace where providers list datacenter GPUs and renters book them from one hour up to a year, with a live 3D datacenter you can fly through.
 
