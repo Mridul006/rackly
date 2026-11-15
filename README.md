@@ -220,7 +220,6 @@ rackly/
 │       ├── components/        UI, and scene/ for the 3D components
 │       └── pages/             landing, login, signup, browse, GPU detail, bookings,
 │                              wallet, datacenter, provider dashboard, rentals, earnings
-├── agent/                     provider agent (planned)
 ├── docs/                      user stories, data model, ER diagram, API list
 ├── docker-compose.yml
 └── .github/workflows/tests.yml
@@ -295,7 +294,7 @@ The rows for one booking always net to zero.
 
 ## Documentation
 
-The `docs/` folder has the [user stories](docs/user-stories.md), the [data model](docs/data-model.md) (with [DBML](docs/data-model.dbml) and [CSV](docs/data-model.csv) exports), the ER diagram, and an [API endpoint list](docs/api-endpoints.md).
+The `docs/` folder has the [user stories](docs/user-stories.md), the [data model](docs/data-model.md) (with [DBML](docs/data-model.png) and [CSV](docs/data-model.csv) exports), the ER diagram, and an [API endpoint list](docs/api-endpoints.md).
 
 ## Troubleshooting
 
