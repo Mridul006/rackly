@@ -6,8 +6,11 @@
 
 > Portfolio project. Payments are **simulated**: no real money moves.
 
-![Rackly datacenter](docs/screenshots/datacenter.png)
-![Rackly datacenter-live](docs/screenshots/datacenter-live.png)
+![Rackly datacenter room (sample-data mode)](docs/screenshots/datacenter.png)
+*The datacenter room in sample-data mode, a full-size room. Live mode shows the real listings.*
+
+![Selecting a GPU in the live datacenter](docs/screenshots/datacenter-live.png)
+*Live mode: click a lit slot to see the GPU and book it.*
 
 ## Live demo
 
