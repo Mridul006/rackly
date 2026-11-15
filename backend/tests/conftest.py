@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 # Point the app at the TEST database *before* anything imports app.config.
 os.environ["DATABASE_NAME"] = os.environ.get("TEST_DATABASE_NAME", "rackly_test")
@@ -187,3 +188,83 @@ def add_window(client):
 @pytest.fixture
 def now():
     return datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+
+
+@pytest.fixture
+def fetch():
+    """Run a SELECT against the test database and return plain tuples."""
+
+    def run(statement: str, **params):
+        with engine.connect() as conn:
+            return [tuple(row) for row in conn.execute(text(statement), params).all()]
+
+    return run
+
+
+@pytest.fixture
+def run_sql():
+    """Run an UPDATE or INSERT against the test database (used to move time around)."""
+
+    def run(statement: str, **params):
+        with engine.begin() as conn:
+            conn.execute(text(statement), params)
+
+    return run
+
+
+@pytest.fixture
+def balance(fetch):
+    def of(account):
+        return fetch(
+            "SELECT COALESCE(SUM(amount), 0) FROM wallet_transactions WHERE user_id = :u",
+            u=account.id,
+        )[0][0]
+
+    return of
+
+
+@pytest.fixture
+def deposit(client):
+    def add(account, amount="100.00"):
+        response = client.post(
+            "/wallet/deposits", json={"amount": str(amount)}, headers=account.headers
+        )
+        assert response.status_code in (200, 201), response.text
+        return response.json()
+
+    return add
+
+
+@pytest.fixture
+def book(client):
+    def make(renter, gpu, start, end):
+        return client.post(
+            "/bookings",
+            json={
+                "gpu_id": gpu["id"],
+                "start_at": start.isoformat(),
+                "end_at": end.isoformat(),
+            },
+            headers=renter.headers,
+        )
+
+    return make
+
+
+@pytest.fixture
+def cancel(client):
+    def go(renter, booking_id):
+        return client.post(f"/bookings/{booking_id}/cancel", headers=renter.headers)
+
+    return go
+
+
+@pytest.fixture
+def scene(signup, make_gpu, add_window, deposit, now):
+    """A provider with a 1.50/hour GPU open for 5 days, and a renter holding 100.00."""
+    provider = signup("provider")
+    renter = signup("renter")
+    gpu = make_gpu(provider)
+    assert add_window(provider, gpu, now, now + timedelta(days=5)).status_code == 201
+    deposit(renter, "100.00")
+    return SimpleNamespace(provider=provider, renter=renter, gpu=gpu)
