@@ -1,14 +1,35 @@
+import logging
+import threading
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from . import worker
 from .database import get_db
-from .routers import auth, users, gpus, bookings, wallet, providers, datacenter, live 
+from .routers import auth, users, gpus, bookings, wallet, providers, datacenter, live
 
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    thread = None
+    if settings.run_worker_in_api:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+        worker.stop.clear()
+        thread = threading.Thread(target=worker.run_loop, name="rackly-worker", daemon=True)
+        thread.start()
+        worker.logger.info("worker started inside the API")
+    yield
+    if thread is not None:
+        worker.stop.set()
+        thread.join(timeout=5)
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

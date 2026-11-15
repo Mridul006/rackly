@@ -7,7 +7,7 @@ from sqlalchemy.orm import declarative_base
 
 SQLALCHEMY_DATABASE_URL= f'postgresql+psycopg2://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
 
 SessionLocal=sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

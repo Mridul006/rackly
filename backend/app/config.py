@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     slots_per_rack: int = 10
     redis_url: str = "redis://localhost:6379/0"
+    run_worker_in_api: bool = False
     
     model_config = SettingsConfigDict(env_file=".env")
         

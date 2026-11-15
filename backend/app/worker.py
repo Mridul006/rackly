@@ -63,18 +63,22 @@ def handle_signal(signum, frame) -> None:
     stop.set()
 
 
-def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
-    signal.signal(signal.SIGTERM, handle_signal)
-    signal.signal(signal.SIGINT, handle_signal)
-    logger.info("worker started, checking every %s seconds", INTERVAL_SECONDS)
-
+def run_loop() -> None:
     while not stop.is_set():
         try:
             tick()
         except Exception:
             logger.exception("tick failed")
         stop.wait(INTERVAL_SECONDS)
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+    signal.signal(signal.SIGTERM, handle_signal)
+    signal.signal(signal.SIGINT, handle_signal)
+    logger.info("worker started, checking every %s seconds", INTERVAL_SECONDS)
+
+    run_loop()
 
     logger.info("worker stopped")
 
