@@ -244,7 +244,7 @@ Full interactive documentation is at `/docs` when the API is running. The main e
 
 ## Data model
 
-![ER diagram](docs/data_model.png)
+![ER diagram](docs/data-model.png)
 
 **Booking life cycle:** `confirmed` then `active` then `completed`, or `confirmed` then `cancelled`. Cancelling is only allowed before the start time.
 
@@ -294,7 +294,7 @@ The rows for one booking always net to zero.
 
 ## Documentation
 
-The `docs/` folder has the [user stories](docs/user-stories.md), the [data model](docs/data-model.md) (with [DBML](docs/data-model.png) and [CSV](docs/data-model.csv) exports), the ER diagram, and an [API endpoint list](docs/api-endpoints.md).
+The `docs/` folder has the [user stories](docs/user-stories.md), the [data model](docs/data-model.md) (with [DBML](docs/data-model.dbml) and [CSV](docs/data-model.csv) exports), the ER diagram, and an [API endpoint list](docs/api-endpoints.md).
 
 ## Troubleshooting
 
